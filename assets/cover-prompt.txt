@@ -1,0 +1,22 @@
+Generation mode: built-in image_gen, style-transfer edit.
+Style reference 1: D:/dev/projects/melvor-no-pain-all-gain/assets/cover.png
+Style reference 2: D:/dev/projects/melvor-workforce/assets/krokys-workforce-cover.png
+Content reference 3: D:/dev/projects/melvor-armed-to-the-seeds/.cache/artwork-drafts/armed-to-the-seeds-cover.png
+Output: assets/cover.png, 1672 x 941 pixels.
+
+Exact final prompt:
+Use case: style-transfer.
+Asset type: landscape 16:9 branded fantasy game mod listing cover.
+Input image 1 and image 2 are decisive STYLE AND LAYOUT REFERENCES: match their dark navy background, thin gold rectangular border with inset curved corners, bold warm cream-gold serif title lettering, small horizontal gold rules and diamond ornaments, and simple clean flat-shaded cartoon illustrations with restrained dimension.
+Input image 3 is CONTENT REFERENCE ONLY, not a style reference; transform its scene entirely into the visual language of images 1 and 2.
+Primary request: create a companion cover titled exactly "Kroky’s" on the first title line and "Armed to the Seeds" on the second title line.
+Composition: title centered across the upper third, with a clear gap between the two lines so ascenders and descenders never touch; gold rules and diamonds flanking the title; generous navy padding; thin gold border exactly like references.
+Illustration in the lower two-thirds: one smiling farmer on the left foreground in simplified silver plate armor, straw hat and brown farmer boots, tugging one large orange carrot halfway out of a small soil patch using both hands on its leafy top.
+His torso and back point toward the sleeping dragon behind him to the right, while his face is visible in three-quarter profile with a broad delighted smile looking down at the carrot.
+One simplified warm red dragon lies asleep on the right, with closed eyes, head resting, folded wings, curled tail, and small "Zzz" floating above it.
+Use broad clean shapes, a few flat shadow facets, limited warm colors, bold readable silhouettes and friendly humorous expressions; match the sibling covers' simplified illustrated icon aesthetic.
+Keep the scene isolated against the navy background, just a small soil patch and a modest cluster of carrot leaves.
+Text verbatim: "Kroky’s" / "Armed to the Seeds"; plus small "Zzz" over the dragon.
+Constraints: plate armor and farming outfit both immediately readable; dragon clearly peacefully sleeping; one farmer and one dragon only; carrot tapered lower half remains buried; no gore; no title overlap or cropped border.
+Avoid: photorealism, realistic textures, 3D rendering, cinematic scenery, castle, mountains, sky, trees, fences, watering cans, crates, extra props, extra characters, weapons in hands, watermark.
+

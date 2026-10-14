@@ -1,4 +1,5 @@
 {
   "namespace": "KrokyCombatFarming",
-  "setup": "setup.mjs"
+  "setup": "setup.mjs",
+  "icon": "assets/icon.png"
 }

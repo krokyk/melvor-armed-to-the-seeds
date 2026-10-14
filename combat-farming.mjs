@@ -192,7 +192,7 @@ export class CombatFarming {
     if (failure) {
       this.failed = true;
       if (!gearRestored) combat.stop();
-      console.error("[Kroky's Combat Farming]", failure);
+      console.error("[Kroky's Armed to the Seeds]", failure);
       this.setStatus(`Paused: ${failure.message}${!gearRestored ? " Combat was stopped because gear could not be restored." : ""} Check your equipment and reload before trying again.`);
     } else if (this.batch.harvests > 0) {
       this.setStatus("Verified: harvested during a spawning gap and restored combat gear");

@@ -1,0 +1,17 @@
+Mode: Built-in image_gen imagegen
+Transparent background: true
+Reference image 1 (required sibling style): D:/dev/projects/melvor-no-pain-all-gain/assets/cover.png
+Reference image 2 (required sibling style): D:/dev/projects/melvor-no-pain-all-gain/assets/icon.png
+Reference image 3 (subject inspiration only, not style): D:/dev/projects/melvor-armed-to-the-seeds/artwork/armed-to-the-seeds-cover.png
+
+Exact generation prompt:
+Use case: stylized-concept
+Asset type: square transparent PNG icon for the mod configuration menu of Kroky's Armed to the Seeds, readable at 64 px.
+Primary request: Create a compact, cheerful cartoon farmer knight harvesting a large orange carrot.
+Input images: Image 1 and Image 2 are the required style references from the sibling mod No Pain, All Gain; match their clean flat-shaded cartoon item-art style, simple geometric forms, crisp silhouette, bold saturated colors, and restrained highlights. Image 3 is subject inspiration only: a happy knight in silver plate armor and a straw farmer's hat pulling a carrot. Do not copy Image 3's photorealistic style, lighting, scenery, or detailed textures.
+Subject: One smiling farmer knight in silver plate armor, wearing an unmistakable wide-brimmed golden straw hat and simple brown farmer boots, bending slightly and visibly tugging the leafy green top of one oversized orange carrot halfway out of a tiny brown soil patch. Show his happy face and the farming action clearly. Straw hat, plate armor, and carrot must be the dominant readable features.
+Style/medium: Clean flat-shaded cartoon illustration consistent with the sibling references. Friendly medieval fantasy game item art, crisp simple geometric shapes, restrained highlights, no realism.
+Composition/framing: Square canvas with a single centered compact figure and carrot, strong silhouette, generous clear transparent margins on every side, all features fully inside the image. Simplify face and hands for a small menu icon. Keep the soil patch small.
+Scene/backdrop: Actual transparent background.
+Constraints: No dragon, text, letters, title, watermark, logo, frame, scenery, castle, clouds, or background. No photorealism, rendered 3D, painterly texture, gradients imitating metal photography, or pixel art. Preserve genuine alpha transparency.
+

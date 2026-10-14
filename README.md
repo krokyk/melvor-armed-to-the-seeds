@@ -1,7 +1,8 @@
-# Kroky's Combat Farming
+# Kroky's Armed to the Seeds
 
 Version **0.1.1**, an experimental companion for SEMI Auto Farming 1.1.2 and SEMI Core 2.0.6 on Melvor Idle 1.3.1.
 SEMI Auto Farming and SEMI Core remain unchanged.
+The namespace, Combat Farming settings section, and switch keys retain their original names so existing linked settings survive the rename.
 
 When crops are ready during combat, the companion waits until the current monster dies and fight cleanup finishes.
 It equips farming gear during the next monster's spawning gap, lets SEMI harvest and replant, then restores the original equipment, spells, and prayers.
@@ -17,15 +18,15 @@ Load the mods in this order:
 
 1. SEMI Core.
 2. SEMI Auto Farming.
-3. Kroky's Combat Farming.
+3. Kroky's Armed to the Seeds.
 
-Import `krokys-combat-farming-0.1.1.zip` through **Creator Toolkit → Local Mods** to test locally.
+Import `krokys-armed-to-the-seeds-0.1.1.zip` through **Creator Toolkit → Local Mods** to test locally.
 Enable the local mod and reload the game.
 Local Toolkit mods have no mod.io dependency metadata, so the companion checks for the loaded SEMI mods and attaches when their original farming ticker is scheduled.
 Unlinked Toolkit mods do not save their settings between reloads; link a private or public mod.io listing in Toolkit, then enable the desired Swap switches again before testing offline equipment swaps.
 The mod.io listing must declare SEMI Auto Farming as a dependency when published.
 
-Open **Mod Settings → Kroky's Combat Farming**.
+Open **Mod Settings → Kroky's Armed to the Seeds**.
 **Harvest between monsters** is enabled by default.
 Enable the individual **Swap** switches for the slots you want to use during combat harvesting.
 These combat-only switches start off, so importing the companion alone does not start changing your equipment.
@@ -78,3 +79,9 @@ Sources inspected:
 The companion wraps SEMI's private `SEMI:AutoFarming` ticker and supports the published scheduler that uses at most 20 debounce ticks.
 Future SEMI releases require reviewing that integration and rerunning the upstream tests.
 No upstream source files are included in the release or committed to this repository.
+
+## Artwork
+
+`assets/cover.png` is the mod.io listing cover, and `assets/icon.png` is the transparent configuration icon included in the release archive.
+The artwork follows the sibling mods' navy, gold, and simple cartoon style.
+Exact built-in image-generation prompts and reference roles are recorded in `assets/cover-prompt.txt` and `assets/icon-prompt.txt`.

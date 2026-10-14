@@ -16,10 +16,19 @@ Push-Location -LiteralPath $PSScriptRoot
 try {
     node --test
     if ($LASTEXITCODE -ne 0) { throw 'Tests failed; release archive was not built.' }
-    $releasePath = Join-Path $PSScriptRoot 'krokys-combat-farming-0.1.1.zip'
-    $releaseFiles = @('manifest.json', 'setup.mjs', 'combat-farming.mjs')
-    Compress-Archive -LiteralPath ($releaseFiles | ForEach-Object { Join-Path $PSScriptRoot $_ }) -DestinationPath $releasePath -Force
+    $releasePath = Join-Path $PSScriptRoot 'krokys-armed-to-the-seeds-0.1.1.zip'
+    $releaseFiles = @('manifest.json', 'setup.mjs', 'combat-farming.mjs', 'assets/icon.png')
     Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $releaseStream = [System.IO.File]::Create($releasePath)
+    $releaseArchive = [System.IO.Compression.ZipArchive]::new($releaseStream, [System.IO.Compression.ZipArchiveMode]::Create)
+    try {
+        foreach ($releaseFile in $releaseFiles) {
+            [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($releaseArchive, (Join-Path $PSScriptRoot $releaseFile), $releaseFile) | Out-Null
+        }
+    } finally {
+        $releaseArchive.Dispose()
+        $releaseStream.Dispose()
+    }
     $releaseArchive = [System.IO.Compression.ZipFile]::OpenRead($releasePath)
     try {
         if ($releaseArchive.Entries.Count -ne $releaseFiles.Count) { throw 'Unexpected release archive contents.' }
