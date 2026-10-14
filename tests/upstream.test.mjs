@@ -84,8 +84,9 @@ function context(initialSections = {}) {
   };
 }
 
-async function fixture({ combat = true, enabled = true, waitForCombatEnd, prayerMaxHP = false, accessCape = false, originalSwap = false, mixed = false, lateTicker = false, unknownTicker = false } = {}) {
+async function fixture({ combat = true, waitForCombatEnd = true, missingWait = false, prayerMaxHP = false, accessCape = false, originalSwap = false, mixed = false, lateTicker = false, unknownTicker = false } = {}) {
   const EnemyState = { Alive: 0, Dead: 1, Spawning: 2 };
+  globalThis.TICK_INTERVAL = 50;
   globalThis.CombatAreaType = { None: 0, Combat: 1, Slayer: 2, Dungeon: 3, Stronghold: 4, AbyssDepth: 5 };
   globalThis.cloudManager = { hasItAEntitlementAndIsEnabled: mixed };
   const slotIDs = ['Weapon', 'Shield', 'Cape', 'Gloves', 'Ring', 'Consumable', 'Helmet'];
@@ -116,7 +117,11 @@ async function fixture({ combat = true, enabled = true, waitForCombatEnd, prayer
     get occupiedSlots() { return [...quantities.values()].filter((quantity) => quantity > 0).length; },
     getQty: (entry) => quantities.get(entry) || 0,
     hasItem: (entry) => (quantities.get(entry) || 0) > 0,
-    addItem(entry, quantity) { quantities.set(entry, this.getQty(entry) + quantity); return true; },
+    addItem(entry, quantity) {
+      if (fault === 'bank' && actions.some((action) => action.product === entry)) return false;
+      quantities.set(entry, this.getQty(entry) + quantity);
+      return true;
+    },
     removeItemQuantity(entry, quantity) { quantities.set(entry, this.getQty(entry) - quantity); },
   };
   const equippedArray = slots.map((slot) => ({ slot, item: originals[slot.id], quantity: slot.allowQuantity ? 7 : 1, providesStats: true }));
@@ -211,7 +216,14 @@ async function fixture({ combat = true, enabled = true, waitForCombatEnd, prayer
   player.manager = manager;
   let fault;
   const gear = () => Object.fromEntries(equippedArray.map((entry) => [entry.slot.id, entry.item.id]));
+  const farmingListeners = new Map();
+  const emitHarvest = (event) => { for (const listener of farmingListeners.get('harvest') || []) listener(event); };
   class Farming {
+    on(type, listener) {
+      if (!farmingListeners.has(type)) farmingListeners.set(type, new Set());
+      farmingListeners.get(type).add(listener);
+    }
+    off(type, listener) { farmingListeners.get(type)?.delete(listener); }
     passiveTick() {}
     showPlotsInCategory() {}
     unlockPlotOnClick() {}
@@ -219,10 +231,18 @@ async function fixture({ combat = true, enabled = true, waitForCombatEnd, prayer
     resetPlot(plot) { plot.state = 1; }
     removeCompostFromPlot(plot) { plot.compostItem = undefined; plot.compostLevel = 0; }
     harvestPlotOnClick(plot) {
+      if (![3, 4].includes(plot.state) || !plot.plantedRecipe) return;
       events.push({ type: 'harvest', realm: plot.plantedRecipe.namespace, gear: gear() });
       if (fault === 'harvest') throw new Error('Injected harvest error');
-      bank.addItem(plot.plantedRecipe.product, equipment.getItemInSlot('melvorD:Weapon').id.startsWith('combat:') ? 1 : 2);
+      const action = plot.plantedRecipe;
+      if (plot.state === 4) {
+        this.resetPlot(plot);
+        emitHarvest({ skill: this, action, successful: false });
+        return;
+      }
+      if (!bank.addItem(action.product, equipment.getItemInSlot('melvorD:Weapon').id.startsWith('combat:') ? 1 : 2)) return;
       this.resetPlot(plot);
+      emitHarvest({ skill: this, action, successful: true });
     }
     plantRecipe(action, plot) {
       events.push({ type: 'plant', gear: gear() });
@@ -258,7 +278,7 @@ async function fixture({ combat = true, enabled = true, waitForCombatEnd, prayer
     enabled: true, priorityType: 'custom', priority: actions.map((action) => action.id), lockedPlots: {}, reservedPlots: {},
   } });
   for (const slot of slots) ctx.settings.section('Auto Swap Equipment').set(`swap-${slot.id}`, originalSwap);
-  const settings = settingsStore({ enabled, ...(waitForCombatEnd === undefined ? {} : { waitForCombatEnd }),
+  const settings = settingsStore({ ...(missingWait ? {} : { waitForCombatEnd }),
     ...Object.fromEntries(slots.map((slot) => [`swap-${slot.id}`, true])) });
   const reports = [];
   const companion = new CombatFarming(ctx, game, semi, settings, { CombatManager, Farming, EnemyState }, (status) => reports.push(status));
@@ -307,6 +327,9 @@ test('real upstream farming waits for a dead enemy, then harvests and replants w
   assert.equal(run.companion.status.last.gearRestored, true);
   assert.equal(run.companion.status.last.timersUnchanged, true);
   assert.equal(run.companion.status.last.combatUnchanged, true);
+  assert.equal(run.companion.status.harvests, 1);
+  assert.equal(run.companion.status.respawnHarvests, 1);
+  assert.equal(run.companion.status.deferredTicks, 100);
   assertRestored(run);
 });
 
@@ -318,6 +341,9 @@ test('explicit waiting retains gap swapping with original SEMI equipment switche
   assert.equal(run.events.find((entry) => entry.type === 'harvest').gear['melvorD:Weapon'], 'melvorD:Bobs_Rake');
   assert.equal(run.player.timerRestarts, 0);
   assert.deepEqual(run.manager.spawnTimer, { isActive: true, ticksLeft: 12 });
+  assert.equal(run.companion.status.harvests, 1);
+  assert.equal(run.companion.status.respawnHarvests, 1);
+  assert.equal(run.companion.status.deferredTicks, 100);
   assertRestored(run);
 });
 
@@ -346,6 +372,9 @@ test('without waiting, real SEMI harvests repeated batches during a long fight w
   assert.equal(run.manager.stopCalls, 0);
   assert.equal(run.player.timerRestarts, 0);
   assert.deepEqual({ player: run.player.timers, spawn: run.manager.spawnTimer }, timers);
+  assert.equal(run.companion.status.harvests, 4);
+  assert.equal(run.companion.status.respawnHarvests, 0);
+  assert.equal(run.companion.status.deferredTicks, 0);
   assertRestored(run);
 });
 
@@ -371,6 +400,9 @@ test('turning waiting off releases queued crops on the original scheduler during
   assert.equal(run.plots[0].state, 2);
   assert.equal(run.manager.fightInProgress, true);
   assert.equal(run.player.timerRestarts, 0);
+  assert.equal(run.companion.status.harvests, 1);
+  assert.equal(run.companion.status.respawnHarvests, 0);
+  assert.equal(run.companion.status.deferredTicks, 100);
   assertRestored(run);
 });
 
@@ -388,6 +420,9 @@ test('turning waiting on between batches defers the next crop and swaps gear in 
   assert.equal(harvests[0].gear['melvorD:Weapon'], 'combat:Weapon');
   assert.equal(harvests[1].gear['melvorD:Weapon'], 'melvorD:Bobs_Rake');
   assert.equal(run.player.timerRestarts, 0);
+  assert.equal(run.companion.status.harvests, 2);
+  assert.equal(run.companion.status.respawnHarvests, 1);
+  assert.equal(run.companion.status.deferredTicks, 100);
   assertRestored(run);
 });
 
@@ -401,7 +436,95 @@ test('without waiting, a spawning gap does not force the original farming deboun
   assert.equal(run.events.find((entry) => entry.type === 'harvest').gear['melvorD:Weapon'], 'combat:Weapon');
   assert.equal(run.player.timerRestarts, 0);
   assert.deepEqual(run.manager.spawnTimer, { isActive: true, ticksLeft: 12 });
+  assert.equal(run.companion.status.harvests, 1);
+  assert.equal(run.companion.status.respawnHarvests, 0);
+  assert.equal(run.companion.status.deferredTicks, 0);
   assertRestored(run);
+});
+
+test('manual harvests are excluded while later successful SEMI harvests are counted', async () => {
+  const run = await fixture({ waitForCombatEnd: false });
+  run.farming.harvestPlotOnClick(run.plots[0]);
+  run.tick(20);
+  assert.equal(run.events.filter((entry) => entry.type === 'harvest').length, 1);
+  assert.equal(run.companion.status.harvests, 0);
+  assert.equal(run.companion.status.respawnHarvests, 0);
+  run.farming.growPlots();
+  run.tick(20);
+  assert.equal(run.companion.status.harvests, 1);
+  assert.equal(run.companion.status.respawnHarvests, 0);
+});
+
+for (const unsuccessful of ['dead', 'bank']) {
+  test(`automatic ${unsuccessful === 'dead' ? 'dead-plot cleanup' : 'rejected bank deposits'} do not count as successful harvests`, async () => {
+    const run = await fixture({ waitForCombatEnd: false });
+    if (unsuccessful === 'dead') run.plots[0].state = 4;
+    else run.setFault('bank');
+    run.tick(20);
+    assert.equal(run.events.filter((entry) => entry.type === 'harvest').length, 1);
+    assert.equal(run.companion.status.harvests, 0);
+    assert.equal(run.companion.status.respawnHarvests, 0);
+    assert.equal(run.companion.failed, false);
+    assert.equal(run.plots[0].state, unsuccessful === 'dead' ? 2 : 3);
+    run.setFault(undefined);
+    run.farming.growPlots();
+    run.tick(20);
+    assert.equal(run.companion.status.harvests, 1);
+    assert.equal(run.companion.status.respawnHarvests, 0);
+  });
+}
+
+test('harvest and deferral history accumulates once across plots and mode changes', async () => {
+  const run = await fixture();
+  for (let index = 1; index < 10; index++) run.plots.push({ ...run.plots[0], id: `plot:${index}` });
+  run.tick(123);
+  assert.equal(run.companion.status.harvests, 0);
+  assert.equal(run.companion.status.deferredTicks, 123);
+  run.gap();
+  assert.equal(run.companion.status.harvests, 10);
+  assert.equal(run.companion.status.respawnHarvests, 10);
+  assert.equal(run.companion.status.deferredTicks, 123);
+  run.manager.fightInProgress = true;
+  run.manager.enemy.state = EnemyState.Alive;
+  run.manager.spawnTimer.isActive = false;
+  run.farming.growPlots();
+  run.tick(77);
+  assert.equal(run.companion.status.deferredTicks, 200);
+  run.settings.set('waitForCombatEnd', false);
+  run.tick(20);
+  assert.equal(run.companion.status.harvests, 20);
+  assert.equal(run.companion.status.respawnHarvests, 10);
+  assert.equal(run.companion.status.deferredTicks, 200);
+  run.manager.stop();
+  run.farming.growPlots();
+  run.tick(20);
+  assert.equal(run.companion.status.harvests, 30);
+  assert.equal(run.companion.status.respawnHarvests, 10);
+  assert.equal(run.companion.status.deferredTicks, 200);
+});
+
+test('accelerated offline-style ticking measures deferred game time without elapsed wall time', async (t) => {
+  const run = await fixture();
+  t.mock.method(Date, 'now', () => 12345);
+  run.tick(72000);
+  assert.equal(run.companion.status.deferredTicks, 72000);
+  assert.equal(run.companion.status.deferredTicks * TICK_INTERVAL / 1000, 3600);
+  run.gap();
+  assert.equal(run.companion.status.harvests, 1);
+  assert.equal(run.companion.status.respawnHarvests, 1);
+  assert.equal(run.companion.status.deferredTicks, 72000);
+});
+
+test('combat with no queued SEMI ticker adds no deferred time', async () => {
+  const run = await fixture();
+  run.gap();
+  run.tick(20);
+  assert.equal(run.game._passiveTickers.includes(run.ticker), false);
+  run.manager.fightInProgress = true;
+  run.manager.enemy.state = EnemyState.Alive;
+  run.manager.spawnTimer.isActive = false;
+  run.tick(100);
+  assert.equal(run.companion.status.deferredTicks, 0);
 });
 
 test('required Slayer cape is retained when the native equipment API refuses its replacement', async () => {
@@ -531,16 +654,22 @@ for (const originalSwap of [false, true]) {
     assert.equal(run.events.find((entry) => entry.type === 'harvest').gear['melvorD:Weapon'], originalSwap ? 'melvorD:Bobs_Rake' : 'combat:Weapon');
     assert.equal(run.plots[0].state, 2);
     assert.equal(run.companion.status.cycles, 0);
+    assert.equal(run.companion.status.harvests, 1);
+    assert.equal(run.companion.status.respawnHarvests, 0);
+    assert.equal(run.companion.status.deferredTicks, 0);
     for (const entry of run.player.equipment.equippedArray) assert.equal(entry.item, run.originals[entry.slot.id]);
   });
 }
 
-test('disabling the companion preserves original harvesting during live combat', async () => {
-  const run = await fixture({ enabled: false });
+test('a missing wait setting defaults to immediate harvesting during live combat', async () => {
+  const run = await fixture({ missingWait: true });
   run.tick(20);
   assert.equal(run.events.find((entry) => entry.type === 'harvest').gear['melvorD:Weapon'], 'combat:Weapon');
   assert.equal(run.manager.fightInProgress, true);
   assert.equal(run.player.timerRestarts, 0);
+  assert.equal(run.companion.status.harvests, 1);
+  assert.equal(run.companion.status.respawnHarvests, 0);
+  assert.equal(run.companion.status.deferredTicks, 0);
   assertRestored(run);
 });
 
@@ -556,8 +685,14 @@ for (const fault of ['harvest', 'plant']) {
     assert.match(errors[0][1].message, /Injected (harvest|plant) error/);
     assert.match(run.companion.status.state, /Paused:/);
     assert.ok(run.events.some((entry) => entry.type === 'harvest'));
+    assert.equal(run.companion.status.harvests, fault === 'plant' ? 1 : 0);
+    assert.equal(run.companion.status.respawnHarvests, fault === 'plant' ? 1 : 0);
     assertRestored(run);
     assert.equal(run.player.timerRestarts, 0);
+    run.setFault(undefined);
+    run.farming.growPlots();
+    run.farming.harvestPlotOnClick(run.plots[0]);
+    assert.equal(run.companion.status.harvests, fault === 'plant' ? 1 : 0);
   });
 }
 
@@ -578,6 +713,8 @@ test('failed native restoration stops combat before the next enemy can spawn', a
   assert.equal(run.player.timers.summon.isActive, false);
   assert.equal(errors.length, 1);
   assert.match(run.companion.status.state, /Paused:.*Combat was stopped/);
+  assert.equal(run.companion.status.harvests, 1);
+  assert.equal(run.companion.status.respawnHarvests, 1);
 });
 
 test('mixed realm harvests select the matching farming weapon and restore combat gear', async () => {

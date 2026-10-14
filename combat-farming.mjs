@@ -39,9 +39,17 @@ function timerState(timer) {
 export class CombatFarming {
   constructor(ctx, game, semi, settings, types, report) {
     Object.assign(this, { game, semi, settings, types, report });
-    this.status = { state: "Waiting for SEMI Auto Farming", cycles: 0, harvests: 0, last: null };
+    this.status = { state: "Waiting for SEMI Auto Farming", cycles: 0, harvests: 0, respawnHarvests: 0, deferredTicks: 0, last: null };
     this.running = false;
     this.failed = false;
+    game.farming.on("harvest", event => {
+      if (!this.processingSEMI || !event.successful) return;
+      this.status.harvests++;
+      if (this.running) {
+        this.batch.harvests++;
+        if (this.batch.waitForCombatEnd) this.status.respawnHarvests++;
+      }
+    });
     ctx.onCharacterLoaded(() => this.attachTicker());
     const controller = this;
     ctx.patch(types.CombatManager, "loadNextEnemy").after(function () {
@@ -56,18 +64,12 @@ export class CombatFarming {
       const realm = plot.plantedRecipe.namespace === "melvorItA" ? "abyssal" : "melvor";
       if (controller.batch.waitForCombatEnd) controller.swap(realm);
       controller.recordGear(realm);
-      const result = original(plot, ...args);
-      controller.batch.harvests++;
-      return result;
+      return original(plot, ...args);
     });
   }
 
-  enabled() {
-    return !this.failed && this.settings.get("enabled");
-  }
-
   waitForCombatEnd() {
-    return this.settings.get("waitForCombatEnd") !== false;
+    return this.settings.get("waitForCombatEnd") === true;
   }
 
   setStatus(state) {
@@ -89,15 +91,31 @@ export class CombatFarming {
       return;
     }
     this.ticker = ticker;
-    this.originalTick = ticker.passiveTick.bind(ticker);
+    const originalTick = ticker.passiveTick.bind(ticker);
+    this.originalTick = () => {
+      const harvestsBefore = this.status.harvests;
+      this.processingSEMI = true;
+      try {
+        return originalTick();
+      } finally {
+        this.processingSEMI = false;
+        if (!this.running && this.status.harvests !== harvestsBefore) {
+          if (!this.failed) this.status.state = "SEMI harvested outside combat";
+          this.report(this.status);
+        }
+      }
+    };
     ticker.passiveTick = () => {
-      if (!this.enabled() || !this.game.combat.isActive) return this.originalTick();
+      if (this.failed || !this.game.combat.isActive) return this.originalTick();
       if (!this.waitForCombatEnd()) {
         if (this.status.state === "Waiting for the current monster to die") this.setStatus("Ready: immediate harvesting with current equipment");
         return this.run(1, false);
       }
       if (!this.inSpawnGap()) {
-        if (this.status.state !== "Waiting for the current monster to die") this.setStatus("Waiting for the current monster to die");
+        this.status.deferredTicks++;
+        if (this.status.state !== "Waiting for the current monster to die" || this.status.deferredTicks % Math.round(1000 / TICK_INTERVAL) === 0) {
+          this.setStatus("Waiting for the current monster to die");
+        }
         return;
       }
       this.run(1);
@@ -112,7 +130,7 @@ export class CombatFarming {
   }
 
   flush() {
-    if (!this.enabled() || !this.waitForCombatEnd() || !this.inSpawnGap() || !this.game._passiveTickers.includes(this.ticker)) return;
+    if (this.failed || !this.waitForCombatEnd() || !this.inSpawnGap() || !this.game._passiveTickers.includes(this.ticker)) return;
     // shortcut: SEMI 1.1.2's private debounce is at most 20 ticks; review this bound when SEMI changes its scheduler.
     this.run(20);
   }
@@ -198,7 +216,6 @@ export class CombatFarming {
     if (!gearRestored || !timersUnchanged || !combatUnchanged) failure ??= new Error("Equipment restoration or combat-state verification failed.");
     if (this.batch.harvests > 0 || failure) {
       this.status.cycles++;
-      this.status.harvests += this.batch.harvests;
       this.status.last = { harvests: this.batch.harvests, waitForCombatEnd, used: [...this.batch.used], alreadyEquipped: [...this.batch.alreadyEquipped],
         swapped: [...this.batch.swapped], skipped: [...this.batch.skipped], gearRestored, timersUnchanged, combatUnchanged };
     }

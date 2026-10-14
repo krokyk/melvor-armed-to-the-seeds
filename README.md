@@ -1,10 +1,10 @@
 # Kroky's Armed to the Seeds
 
-Version **0.1.3**, an experimental companion for SEMI Auto Farming 1.1.2 and SEMI Core 2.0.6 on Melvor Idle 1.3.1.
+Version **0.1.4**, an experimental companion for SEMI Auto Farming 1.1.2 and SEMI Core 2.0.6 on Melvor Idle 1.3.1.
 SEMI Auto Farming and SEMI Core remain unchanged.
 The namespace, Combat Farming settings section, and switch keys retain their original names so existing linked settings survive the rename.
 
-By default, when crops are ready during combat, the companion waits until the current monster dies and fight cleanup finishes.
+When **Wait until current fight ends** is on and crops are ready during combat, the companion waits until the current monster dies and fight cleanup finishes.
 It equips farming gear during the next monster's spawning gap, lets SEMI harvest and replant, then restores the original equipment, spells, and prayers.
 Turn **Wait until current fight ends** off to let SEMI harvest ready crops during the current fight using the equipment already worn, without farming-equipment swaps.
 Waiting can provide more farming-equipment bonuses, but long fights delay harvesting and replanting and can reduce farming output.
@@ -23,17 +23,18 @@ Load the mods in this order:
 2. SEMI Auto Farming.
 3. Kroky's Armed to the Seeds.
 
-Import `krokys-armed-to-the-seeds-0.1.3.zip` through **Creator Toolkit → Local Mods** to test locally.
+Import `krokys-armed-to-the-seeds-0.1.4.zip` through **Creator Toolkit → Local Mods** to test locally.
 Enable the local mod and reload the game.
 Local Toolkit mods have no mod.io dependency metadata, so the companion checks for the loaded SEMI mods and attaches when their original farming ticker is scheduled.
 Unlinked Toolkit mods do not save their settings between reloads; link a private or public mod.io listing in Toolkit, then enable the desired Swap switches again before testing offline equipment swaps.
 The mod.io listing must declare SEMI Auto Farming as a dependency when published.
 
 Open **Mod Settings → Kroky's Armed to the Seeds**.
-**Enable Armed to the Seeds** and **Wait until current fight ends** are enabled by default.
+**Wait until current fight ends** starts off for new installations.
+Updates preserve your effective waiting choice, keeping waiting off if the old **Enable Armed to the Seeds** switch was off.
 With waiting on, enable the individual **Swap** switches for the slots you want to use during respawn-gap harvesting.
 With waiting off, SEMI uses its normal crop-processing schedule during combat and keeps your current equipment; the companion's slot switches are ignored.
-The slot switches are disabled and greyed out while waiting or the addon is off, and their selections are kept for when you turn it back on.
+The slot switches are disabled and greyed out while waiting is off, and their selections are kept for when you turn it back on.
 The wait is for the current fight to finish, and combat then continues through its normal respawn timer.
 These combat-only switches start off, so importing the companion alone does not start changing your equipment.
 SEMI's own slot switches remain responsible for equipment swapping outside combat.
@@ -45,15 +46,20 @@ It uses Melvor's correct Helmet slot for the Clown Hat.
 Equipment must be in your bank or already equipped and meet its normal requirements.
 Dungeon and Stronghold switching unlocks remain required, and protected Slayer access equipment stays protected.
 Blocked items are listed in the last-batch status; the remaining eligible slots can still be used.
-Disable **Enable Armed to the Seeds** to restore SEMI's original scheduling and combat behavior.
+Turn **Wait until current fight ends** off to use SEMI's normal schedule without combat equipment swaps.
 Disabling the companion in Creator Toolkit and reloading removes its runtime hooks.
 
 ## How to verify it
 
-The status readout in the companion's settings shows combat harvest totals and the last batch's timing mode, gear, restoration result, and combat timer checks.
+The status readout shows two counters for the current session: plots **Harvested during respawns** in waiting mode, and **All automatic harvests** made by SEMI during and outside combat.
+Each successfully harvested plot counts once, regardless of crop quantity; manual harvests are excluded.
+Turning waiting off stops the respawn counter increasing and preserves both totals until the game reloads.
+**Time farming was deferred** reports simulated game seconds during which the addon held SEMI's scheduled processing while waiting for the current fight to end.
+The timer counts each deferred scheduler tick once, even when several plots are waiting, and also includes deferred planting, dead-crop cleanup, and initial processing.
+It measures processing delays rather than lost crops or yield.
+The last combat batch still shows its timing mode, gear, restoration result, and combat timer checks.
 It lists farming items actually equipped at harvest, marking items that were already equipped even if their Swap switch is off.
-It counts calls made through SEMI's original harvest logic during active combat in either mode.
-Offline catchup runs the same farming and combat hooks, so the companion also applies while the game simulates time away.
+Offline catchup runs the same farming and combat hooks, and its simulated harvests and deferred time are included in the session totals.
 The offline recap window does not pause normal gameplay; crops can also be harvested while that window remains open.
 
 1. Export a backup of your save before a first live test.
@@ -61,12 +67,13 @@ The offline recap window does not pause normal gameplay; crops can also be harve
 3. Keep **Wait until current fight ends** on, enable a companion slot such as **Swap Ring**, and keep a suitable farming ring in your bank.
 4. Fight an enemy you can safely idle and wait for a planted crop to mature naturally.
 5. Open the companion's settings and look for **Verified: harvested during a spawning gap and restored combat gear**.
-6. Check that the farming item is listed, the combat harvest total increased, **Equipment, spells and prayers restored** says **Yes**, and **Combat timers unchanged** says **Yes**.
+6. Check that the farming item is listed, both harvest counters increased, **Equipment, spells and prayers restored** says **Yes**, and **Combat timers unchanged** says **Yes**.
 7. Check that the crop was replanted and your original combat gear is still equipped.
 
 To verify immediate harvesting, turn **Wait until current fight ends** off while a crop is ready and the current monster is still alive.
 SEMI should harvest and replant on its normal schedule without waiting for that monster to die.
-Look for **Verified: harvested immediately during combat without equipment swaps**, an increased harvest total, unchanged gear and HP, and passing restoration and timer checks.
+Look for **Verified: harvested immediately during combat without equipment swaps**, an increased **All automatic harvests** total, unchanged gear and HP, and passing restoration and timer checks.
+The respawn counter and deferred time should stop increasing while waiting is off.
 
 No crop-growth cheats, granted items, or test save mutations are built into the mod.
 The test harness is separate from the release archive.
@@ -84,6 +91,7 @@ Sources inspected:
 - [SEMI Auto Farming source](https://gitlab.com/semi5/semi-auto-farm/-/blob/main/src/v1.3.0/main.mjs).
 - [SEMI Core source](https://gitlab.com/semi5/semi-core/-/blob/main/src/v1.3.0/main.mjs).
 - [Melvor combat lifecycle](https://melvoridle.com/assets/js/built/baseManager.js).
+- [Melvor farming harvest events](https://melvoridle.com/assets/js/built/farming2.js).
 - [Melvor equipment rules](https://melvoridle.com/assets/js/built/player.js).
 
 The companion wraps SEMI's private `SEMI:AutoFarming` ticker and supports the published scheduler that uses at most 20 debounce ticks.

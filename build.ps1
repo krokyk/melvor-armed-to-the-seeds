@@ -21,7 +21,7 @@ try {
     if ($iconWidth -lt 1 -or $iconWidth -gt 200 -or $iconHeight -lt 1 -or $iconHeight -gt 200) { throw 'The configuration icon must be at most 200 x 200 pixels.' }
     node --test
     if ($LASTEXITCODE -ne 0) { throw 'Tests failed; release archive was not built.' }
-    $releasePath = Join-Path $PSScriptRoot 'krokys-armed-to-the-seeds-0.1.3.zip'
+    $releasePath = Join-Path $PSScriptRoot 'krokys-armed-to-the-seeds-0.1.4.zip'
     $releaseFiles = @('manifest.json', 'setup.mjs', 'combat-farming.mjs', 'assets/icon.png')
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $releaseStream = [System.IO.File]::Create($releasePath)

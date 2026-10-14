@@ -5,8 +5,8 @@ export async function setup(ctx) {
     const slotLabels = [];
     const slotDescription = document.createElement("span");
     slotDescription.textContent = "Combat-only equipment swaps";
-    const refreshSlots = (waiting = settings.get("waitForCombatEnd"), enabled = settings.get("enabled")) => {
-      const active = waiting && enabled;
+    const refreshSlots = (waiting = settings.get("waitForCombatEnd")) => {
+      const active = waiting === true;
       slotDescription.parentElement.style.opacity = active ? "" : "0.5";
       for (const text of slotLabels) {
         const label = text.closest("label");
@@ -19,16 +19,17 @@ export async function setup(ctx) {
     status.setAttribute("role", "status");
     status.setAttribute("aria-live", "polite");
     status.style.whiteSpace = "pre-line";
+    let legacyEnabled;
     settings.add([
-      { type: "switch", name: "enabled", label: "Enable Armed to the Seeds", default: true,
-        hint: "Apply the harvesting mode chosen below during combat.",
-        onChange: value => { refreshSlots(settings.get("waitForCombatEnd"), value); } },
-      { type: "label", name: "status", label: status },
-      { type: "switch", name: "waitForCombatEnd", label: "Wait until current fight ends", default: true,
+      // Keep the obsolete key on the readout to restore old preferences without a hidden control.
+      { type: "custom", name: "enabled", render: () => status,
+        get: () => legacyEnabled, set: (_root, value) => { legacyEnabled = value; } },
+      // Undefined distinguishes new installs from saves made before the wait option existed.
+      { type: "switch", name: "waitForCombatEnd", label: "Wait until current fight ends",
         hint: "ON: Wait until the current monster is defeated, swap to your chosen farming gear, harvest and replant, then restore combat gear before the next fight. Long fights delay harvesting and can reduce farming output. OFF: Let SEMI harvest as soon as crops are ready with your current equipment and no gear swaps during combat. This avoids the wait but may miss farming-equipment bonuses. Slot switches below are disabled while waiting is off; their selections are kept.",
         onChange: value => { refreshSlots(value); } },
       { type: "label", name: "slot-description", label: slotDescription,
-        hint: "Used when the addon and Wait until current fight ends are on. SEMI's own switches still control farming outside combat." },
+        hint: "Used when Wait until current fight ends is on. SEMI's own switches still control farming outside combat." },
     ]);
     for (const slotID of new Set([...Object.keys(GEAR_PRIORITY.melvor), ...Object.keys(GEAR_PRIORITY.abyssal)])) {
       const slot = game.equipmentSlots.getObjectByID(slotID);
@@ -42,15 +43,27 @@ export async function setup(ctx) {
       slotLabels.push(label);
     }
     refreshSlots();
-    ctx.onCharacterLoaded(() => refreshSlots());
+    ctx.onCharacterLoaded(() => {
+      if (legacyEnabled === false) settings.set("waitForCombatEnd", false);
+      else if (settings.get("waitForCombatEnd") === undefined) settings.set("waitForCombatEnd", legacyEnabled === true);
+      settings.set("enabled", undefined);
+      refreshSlots();
+    });
+    let notifiedFailure;
     const report = result => {
       const last = result.last;
-      status.textContent = [result.state, `Combat harvests this session: ${result.harvests}`,
-        ...(last ? [`Last batch: ${last.harvests} plots (${last.waitForCombatEnd ? "respawn gap" : "immediate, no gear swaps"})`, `Farming gear used: ${last.used.map(name => last.alreadyEquipped.includes(name) ? `${name} (already equipped)` : name).join(", ") || "None"}`,
+      status.textContent = [result.state,
+        `Harvested during respawns this session: ${result.respawnHarvests}`,
+        `All automatic harvests this session: ${result.harvests}`,
+        `Time farming was deferred this session: ${(result.deferredTicks * TICK_INTERVAL / 1000).toFixed(1)} seconds`,
+        ...(last ? [`Last combat batch: ${last.harvests} plots (${last.waitForCombatEnd ? "respawn gap" : "immediate, no gear swaps"})`, `Farming gear used: ${last.used.map(name => last.alreadyEquipped.includes(name) ? `${name} (already equipped)` : name).join(", ") || "None"}`,
           `Equipment, spells and prayers restored: ${last.gearRestored ? "Yes" : "NO"}`,
           `Combat timers unchanged: ${last.timersUnchanged ? "Yes" : "NO"}`,
           ...last.skipped] : [])].join("\n");
-      if (result.state.startsWith("Paused:")) notifyPlayer(game.farming, result.state, "danger");
+      if (result.state.startsWith("Paused:") && result.state !== notifiedFailure) {
+        notifiedFailure = result.state;
+        notifyPlayer(game.farming, result.state, "danger");
+      }
     };
     const semi = mod.api.SEMI;
     if (!semi?.equipmentSnapshot || !semi?.equipmentSnapshotRestore || !mod.manager.getLoadedModList().includes("SEMI Auto Farming")) {
