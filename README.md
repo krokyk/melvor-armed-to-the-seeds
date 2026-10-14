@@ -22,6 +22,7 @@ Load the mods in this order:
 Import `krokys-combat-farming-0.1.1.zip` through **Creator Toolkit → Local Mods** to test locally.
 Enable the local mod and reload the game.
 Local Toolkit mods have no mod.io dependency metadata, so the companion checks for the loaded SEMI mods and attaches when their original farming ticker is scheduled.
+Unlinked Toolkit mods do not save their settings between reloads; link a private or public mod.io listing in Toolkit, then enable the desired Swap switches again before testing offline equipment swaps.
 The mod.io listing must declare SEMI Auto Farming as a dependency when published.
 
 Open **Mod Settings → Kroky's Combat Farming**.
