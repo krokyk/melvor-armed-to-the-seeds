@@ -1,0 +1,4 @@
+{
+  "namespace": "KrokyCombatFarming",
+  "setup": "setup.mjs"
+}
