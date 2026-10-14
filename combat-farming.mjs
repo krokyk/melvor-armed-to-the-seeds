@@ -52,9 +52,9 @@ export class CombatFarming {
     });
     ctx.patch(types.Farming, "harvestPlotOnClick").replace(function (original, plot, ...args) {
       if (!controller.running || this !== game.farming) return original(plot, ...args);
-      if (!controller.inSpawnGap()) throw new Error("The spawning gap ended before harvesting.");
+      if (controller.batch.waitForCombatEnd && !controller.inSpawnGap()) throw new Error("The spawning gap ended before harvesting.");
       const realm = plot.plantedRecipe.namespace === "melvorItA" ? "abyssal" : "melvor";
-      controller.swap(realm);
+      if (controller.batch.waitForCombatEnd) controller.swap(realm);
       controller.recordGear(realm);
       const result = original(plot, ...args);
       controller.batch.harvests++;
@@ -64,6 +64,10 @@ export class CombatFarming {
 
   enabled() {
     return !this.failed && this.settings.get("enabled");
+  }
+
+  waitForCombatEnd() {
+    return this.settings.get("waitForCombatEnd") !== false;
   }
 
   setStatus(state) {
@@ -88,13 +92,17 @@ export class CombatFarming {
     this.originalTick = ticker.passiveTick.bind(ticker);
     ticker.passiveTick = () => {
       if (!this.enabled() || !this.game.combat.isActive) return this.originalTick();
+      if (!this.waitForCombatEnd()) {
+        if (this.status.state === "Waiting for the current monster to die") this.setStatus("Ready: immediate harvesting with current equipment");
+        return this.run(1, false);
+      }
       if (!this.inSpawnGap()) {
         if (this.status.state !== "Waiting for the current monster to die") this.setStatus("Waiting for the current monster to die");
         return;
       }
       this.run(1);
     };
-    this.setStatus("Ready: waiting for crops and a spawning gap");
+    this.setStatus(this.waitForCombatEnd() ? "Ready: waiting for crops and a spawning gap" : "Ready: immediate harvesting with current equipment");
   }
 
   inSpawnGap() {
@@ -104,7 +112,7 @@ export class CombatFarming {
   }
 
   flush() {
-    if (!this.enabled() || !this.inSpawnGap() || !this.game._passiveTickers.includes(this.ticker)) return;
+    if (!this.enabled() || !this.waitForCombatEnd() || !this.inSpawnGap() || !this.game._passiveTickers.includes(this.ticker)) return;
     // shortcut: SEMI 1.1.2's private debounce is at most 20 ticks; review this bound when SEMI changes its scheduler.
     this.run(20);
   }
@@ -144,7 +152,7 @@ export class CombatFarming {
     }
   }
 
-  run(limit) {
+  run(limit, waitForCombatEnd = true) {
     if (this.running) return;
     const combat = this.game.combat;
     const player = combat.player;
@@ -154,15 +162,18 @@ export class CombatFarming {
     const originalSet = player.selectedEquipmentSet;
     const originalArea = combat.selectedArea;
     const originalMonster = combat.selectedMonster;
+    const originalFight = combat.fightInProgress;
+    const originalEnemyState = combat.enemy.state;
+    const originalPaused = combat.paused;
     const timers = [player.timers.act, player.timers.summon, combat.spawnTimer];
     const beforeTimers = timers.map(timerState);
-    this.batch = { harvests: 0, used: new Set(), alreadyEquipped: new Set(), swapped: new Set(), skipped: new Set(),
+    this.batch = { harvests: 0, waitForCombatEnd, used: new Set(), alreadyEquipped: new Set(), swapped: new Set(), skipped: new Set(),
       equippedBefore: new Set(Object.values(before).map(slot => slot.item)), realm: null };
     this.running = true;
     let failure;
     try {
       for (let tick = 0; tick < limit && this.game._passiveTickers.includes(this.ticker); tick++) {
-        if (!this.inSpawnGap()) throw new Error("Farming was requested outside a spawning gap.");
+        if (waitForCombatEnd && !this.inSpawnGap()) throw new Error("Farming was requested outside a spawning gap.");
         this.originalTick();
         if (this.batch.harvests > 0) break;
       }
@@ -171,7 +182,8 @@ export class CombatFarming {
     } finally {
       try {
         if (!equipmentMatches(before, this.semi.equipmentSnapshot())) this.semi.equipmentSnapshotRestore(before);
-        if (this.batch.swapped.size > 0 && player.stats.maxHitpoints === originalMaxHP && player.hitpoints !== originalHP) {
+        // SEMI also reapplies prayers, which can temporarily clamp HP even without a gear swap.
+        if (player.stats.maxHitpoints === originalMaxHP && player.hitpoints !== originalHP) {
           player.setHitpoints(originalHP);
         }
       } catch (error) {
@@ -181,12 +193,13 @@ export class CombatFarming {
     }
     const gearRestored = equipmentMatches(before, this.semi.equipmentSnapshot()) && player.selectedEquipmentSet === originalSet;
     const timersUnchanged = timers.every((timer, index) => timerState(timer).every((value, part) => value === beforeTimers[index][part]));
-    const combatUnchanged = this.inSpawnGap() && combat.selectedArea === originalArea && combat.selectedMonster === originalMonster;
+    const combatUnchanged = combat.isActive && combat.fightInProgress === originalFight && combat.enemy.state === originalEnemyState
+      && combat.paused === originalPaused && combat.selectedArea === originalArea && combat.selectedMonster === originalMonster;
     if (!gearRestored || !timersUnchanged || !combatUnchanged) failure ??= new Error("Equipment restoration or combat-state verification failed.");
     if (this.batch.harvests > 0 || failure) {
       this.status.cycles++;
       this.status.harvests += this.batch.harvests;
-      this.status.last = { harvests: this.batch.harvests, used: [...this.batch.used], alreadyEquipped: [...this.batch.alreadyEquipped],
+      this.status.last = { harvests: this.batch.harvests, waitForCombatEnd, used: [...this.batch.used], alreadyEquipped: [...this.batch.alreadyEquipped],
         swapped: [...this.batch.swapped], skipped: [...this.batch.skipped], gearRestored, timersUnchanged, combatUnchanged };
     }
     if (failure) {
@@ -195,7 +208,8 @@ export class CombatFarming {
       console.error("[Kroky's Armed to the Seeds]", failure);
       this.setStatus(`Paused: ${failure.message}${!gearRestored ? " Combat was stopped because gear could not be restored." : ""} Check your equipment and reload before trying again.`);
     } else if (this.batch.harvests > 0) {
-      this.setStatus("Verified: harvested during a spawning gap and restored combat gear");
+      this.setStatus(waitForCombatEnd ? "Verified: harvested during a spawning gap and restored combat gear"
+        : "Verified: harvested immediately during combat without equipment swaps");
     }
   }
 }

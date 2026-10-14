@@ -84,7 +84,7 @@ function context(initialSections = {}) {
   };
 }
 
-async function fixture({ combat = true, enabled = true, accessCape = false, originalSwap = false, mixed = false, lateTicker = false, unknownTicker = false } = {}) {
+async function fixture({ combat = true, enabled = true, waitForCombatEnd, prayerMaxHP = false, accessCape = false, originalSwap = false, mixed = false, lateTicker = false, unknownTicker = false } = {}) {
   const EnemyState = { Alive: 0, Dead: 1, Spawning: 2 };
   globalThis.CombatAreaType = { None: 0, Combat: 1, Slayer: 2, Dungeon: 3, Stronghold: 4, AbyssDepth: 5 };
   globalThis.cloudManager = { hasItAEntitlementAndIsEnabled: mixed };
@@ -139,7 +139,13 @@ async function fixture({ combat = true, enabled = true, accessCape = false, orig
     selectAttackSpell(value) { this.spellSelection.attack = value; },
     toggleCurse(value) { this.spellSelection.curse = this.spellSelection.curse === value ? undefined : value; },
     toggleAurora(value) { this.spellSelection.aurora = this.spellSelection.aurora === value ? undefined : value; },
-    togglePrayer(value) { this.activePrayers.has(value) ? this.activePrayers.delete(value) : this.activePrayers.add(value); },
+    togglePrayer(value) {
+      this.activePrayers.has(value) ? this.activePrayers.delete(value) : this.activePrayers.add(value);
+      if (prayerMaxHP) {
+        this.stats.maxHitpoints = this.activePrayers.has(prayer) ? 1000 : 850;
+        if (this.hitpoints >= this.stats.maxHitpoints) this.setHitpoints(this.stats.maxHitpoints);
+      }
+    },
     checkIfCantEquip() {
       return manager.areaType === CombatAreaType.Dungeon && this.modifiers.dungeonEquipmentSwapping === 0;
     },
@@ -252,7 +258,8 @@ async function fixture({ combat = true, enabled = true, accessCape = false, orig
     enabled: true, priorityType: 'custom', priority: actions.map((action) => action.id), lockedPlots: {}, reservedPlots: {},
   } });
   for (const slot of slots) ctx.settings.section('Auto Swap Equipment').set(`swap-${slot.id}`, originalSwap);
-  const settings = settingsStore({ enabled, ...Object.fromEntries(slots.map((slot) => [`swap-${slot.id}`, true])) });
+  const settings = settingsStore({ enabled, ...(waitForCombatEnd === undefined ? {} : { waitForCombatEnd }),
+    ...Object.fromEntries(slots.map((slot) => [`swap-${slot.id}`, true])) });
   const reports = [];
   const companion = new CombatFarming(ctx, game, semi, settings, { CombatManager, Farming, EnemyState }, (status) => reports.push(status));
   let ticker;
@@ -271,14 +278,14 @@ async function fixture({ combat = true, enabled = true, accessCape = false, orig
   };
 }
 
-function assertRestored(run) {
+function assertRestored(run, hitpoints = 777) {
   for (const entry of run.player.equipment.equippedArray) {
     assert.equal(entry.item, run.originals[entry.slot.id]);
     assert.equal(entry.quantity, entry.slot.allowQuantity ? 7 : 1);
   }
   assert.equal(run.player.spellSelection.attack, run.spell);
   assert.deepEqual([...run.player.activePrayers], [run.prayer]);
-  assert.equal(run.player.hitpoints, 777);
+  assert.equal(run.player.hitpoints, hitpoints);
 }
 
 test('real upstream farming waits for a dead enemy, then harvests and replants with gear', async () => {
@@ -300,6 +307,100 @@ test('real upstream farming waits for a dead enemy, then harvests and replants w
   assert.equal(run.companion.status.last.gearRestored, true);
   assert.equal(run.companion.status.last.timersUnchanged, true);
   assert.equal(run.companion.status.last.combatUnchanged, true);
+  assertRestored(run);
+});
+
+test('explicit waiting retains gap swapping with original SEMI equipment switches enabled', async () => {
+  const run = await fixture({ waitForCombatEnd: true, originalSwap: true });
+  run.tick(100);
+  assert.equal(run.events.length, 0);
+  run.gap();
+  assert.equal(run.events.find((entry) => entry.type === 'harvest').gear['melvorD:Weapon'], 'melvorD:Bobs_Rake');
+  assert.equal(run.player.timerRestarts, 0);
+  assert.deepEqual(run.manager.spawnTimer, { isActive: true, ticksLeft: 12 });
+  assertRestored(run);
+});
+
+test('without waiting, real SEMI harvests repeated batches during a long fight without swapping gear', async () => {
+  const run = await fixture({ waitForCombatEnd: false, originalSwap: true, mixed: true });
+  const timers = structuredClone({ player: run.player.timers, spawn: run.manager.spawnTimer });
+  const area = run.manager.selectedArea;
+  run.tick(19);
+  assert.equal(run.events.length, 0);
+  run.tick();
+  assert.equal(run.events.filter((entry) => entry.type === 'harvest').length, 2);
+  assert.equal(run.events.filter((entry) => entry.type === 'plant').length, 2);
+  run.farming.growPlots();
+  run.tick(100);
+  assert.equal(run.events.filter((entry) => entry.type === 'harvest').length, 4);
+  assert.equal(run.events.filter((entry) => entry.type === 'plant').length, 4);
+  assert.equal(run.events.filter((entry) => entry.type === 'equip').length, 0);
+  for (const event of run.events) {
+    if (event.type !== 'harvest' && event.type !== 'plant') continue;
+    for (const [slotID, item] of Object.entries(run.originals)) assert.equal(event.gear[slotID], item.id);
+  }
+  assert.equal(run.manager.isActive, true);
+  assert.equal(run.manager.fightInProgress, true);
+  assert.equal(run.manager.enemy.state, EnemyState.Alive);
+  assert.equal(run.manager.selectedArea, area);
+  assert.equal(run.manager.stopCalls, 0);
+  assert.equal(run.player.timerRestarts, 0);
+  assert.deepEqual({ player: run.player.timers, spawn: run.manager.spawnTimer }, timers);
+  assertRestored(run);
+});
+
+test('without waiting, unnecessary Core prayer restoration cannot lower current hitpoints', async () => {
+  const run = await fixture({ waitForCombatEnd: false, originalSwap: true, prayerMaxHP: true });
+  run.player.hitpoints = 987;
+  run.tick(20);
+  assert.equal(run.events.filter((entry) => entry.type === 'harvest').length, 1);
+  assert.equal(run.manager.fightInProgress, true);
+  assert.equal(run.player.stats.maxHitpoints, 1000);
+  assertRestored(run, 987);
+});
+
+test('turning waiting off releases queued crops on the original scheduler during the current fight', async () => {
+  const run = await fixture({ waitForCombatEnd: true, originalSwap: true });
+  run.tick(100);
+  assert.equal(run.events.length, 0);
+  run.settings.set('waitForCombatEnd', false);
+  run.tick(19);
+  assert.equal(run.events.length, 0);
+  run.tick();
+  assert.equal(run.events.find((entry) => entry.type === 'harvest').gear['melvorD:Weapon'], 'combat:Weapon');
+  assert.equal(run.plots[0].state, 2);
+  assert.equal(run.manager.fightInProgress, true);
+  assert.equal(run.player.timerRestarts, 0);
+  assertRestored(run);
+});
+
+test('turning waiting on between batches defers the next crop and swaps gear in its spawning gap', async () => {
+  const run = await fixture({ waitForCombatEnd: false, originalSwap: true });
+  run.tick(20);
+  assert.equal(run.events.filter((entry) => entry.type === 'harvest').length, 1);
+  run.settings.set('waitForCombatEnd', true);
+  run.farming.growPlots();
+  run.tick(100);
+  assert.equal(run.events.filter((entry) => entry.type === 'harvest').length, 1);
+  run.gap();
+  const harvests = run.events.filter((entry) => entry.type === 'harvest');
+  assert.equal(harvests.length, 2);
+  assert.equal(harvests[0].gear['melvorD:Weapon'], 'combat:Weapon');
+  assert.equal(harvests[1].gear['melvorD:Weapon'], 'melvorD:Bobs_Rake');
+  assert.equal(run.player.timerRestarts, 0);
+  assertRestored(run);
+});
+
+test('without waiting, a spawning gap does not force the original farming debounce to finish', async () => {
+  const run = await fixture({ waitForCombatEnd: false, originalSwap: true });
+  run.tick(19);
+  assert.equal(run.events.length, 0);
+  run.gap();
+  assert.equal(run.events.length, 0);
+  run.tick();
+  assert.equal(run.events.find((entry) => entry.type === 'harvest').gear['melvorD:Weapon'], 'combat:Weapon');
+  assert.equal(run.player.timerRestarts, 0);
+  assert.deepEqual(run.manager.spawnTimer, { isActive: true, ticksLeft: 12 });
   assertRestored(run);
 });
 

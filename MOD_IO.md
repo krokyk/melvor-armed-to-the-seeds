@@ -6,23 +6,32 @@ Kroky's Armed to the Seeds
 
 ## Summary
 
-An addon for SEMI Auto Farming that equips farming gear, harvests between monster respawns, and restores your combat equipment before the next fight.
+An addon for SEMI Auto Farming: harvest with farming gear during monster respawns, or harvest immediately during combat with your current equipment.
 
 ## Description
 
 **The monster's down.
 Your carrots are up.**
 
-**Kroky's Armed to the Seeds** is an addon for [SEMI Auto Farming](https://mod.io/g/melvoridle/m/semi-auto-farming) that lets you use farming equipment while keeping your combat routine going.
+**Kroky's Armed to the Seeds** is an addon for [SEMI Auto Farming](https://mod.io/g/melvoridle/m/semi-auto-farming) that automates farming-equipment swaps during monster respawns, including offline progress.
 
-When a monster dies, the addon uses the brief respawn gap to equip farming gear in your chosen slots, let SEMI harvest and replant, then restore your original combat equipment before the next fight.
+The **Wait until current fight ends** switch lets you choose between farming-equipment bonuses and prompt harvesting during long fights:
+
+- **ON (default):** Ready crops wait until the current monster is defeated.
+  The addon then equips farming gear in your chosen slots, lets SEMI harvest and replant during the respawn gap, and restores your combat equipment before the next fight.
+  Long fights can substantially delay harvesting and replanting, potentially reducing farming output.
+- **OFF:** SEMI harvests ready crops on its normal schedule during the current fight, using your current equipment with no automatic gear swaps during combat.
+  This avoids the wait, but you may miss bonuses from farming equipment that is not currently worn.
+
+This waits for the current fight, while combat continues through its normal respawn timer.
+Crops continue growing normally in both modes, and the setting also applies during offline progress.
 
 - **Dress for the harvest.**
-  Choose which equipment slots may swap into farming gear during combat.
+  Choose which equipment slots may swap into farming gear when waiting is enabled.
 - **Keep SEMI in charge.**
   Your existing seed priorities, ignored plots, composting, and potion settings still control the farming.
 - **See what you wore.**
-  The status lists farming gear used, including items that were already equipped, and checks equipment restoration and combat timers.
+  The status shows the harvest mode and farming gear used, including items that were already equipped, and checks equipment restoration and combat timers.
 - **Keep growing while away.**
   The addon also runs during offline progress and while the offline recap is displayed.
 - **Follow the game's equipment rules.**
@@ -32,9 +41,10 @@ When a monster dies, the addon uses the brief respawn gap to equip farming gear 
 
 1. Enable **SEMI Core**, **SEMI Auto Farming**, and **Kroky's Armed to the Seeds**, in that order.
 2. Configure your crops as usual in SEMI Auto Farming.
-3. Open **Mod Settings → Kroky's Armed to the Seeds** and enable the **Swap** switches for the equipment slots you want to use.
+3. Open **Mod Settings → Kroky's Armed to the Seeds** and choose whether to **Wait until current fight ends**.
+4. If waiting is on, enable the **Swap** switches for the equipment slots you want to use.
 
-**Harvest between monsters** starts enabled; the individual equipment swap switches start off.
+The addon and waiting mode start enabled; the individual equipment swap switches start off.
 SEMI's own equipment switches continue to control farming outside combat.
 
 Requires **SEMI Auto Farming 1.1.2** and **SEMI Core 2.0.6**; tested with **Melvor Idle 1.3.1**.
@@ -47,9 +57,9 @@ The original SEMI mods remain unchanged.
 
 ## Release fields
 
-- **Version:** 0.1.1
+- **Version:** 0.1.2
 - **Game version:** 1.3.1
-- **Release file:** `krokys-armed-to-the-seeds-0.1.1.zip`
+- **Release file:** `krokys-armed-to-the-seeds-0.1.2.zip`
 - **Cover:** `assets/cover.png`
 - **Configuration icon:** `assets/icon.png`, a transparent 200 × 200 PNG included in the release manifest and archive.
 - **Required dependency:** SEMI Auto Farming, mod ID `2362049`.

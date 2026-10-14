@@ -7,11 +7,13 @@ export async function setup(ctx) {
     status.setAttribute("aria-live", "polite");
     status.style.whiteSpace = "pre-line";
     settings.add([
-      { type: "switch", name: "enabled", label: "Harvest between monsters", default: true,
-        hint: "Wait for a spawning gap while fighting, then let SEMI harvest and replant." },
+      { type: "switch", name: "enabled", label: "Enable Armed to the Seeds", default: true,
+        hint: "Apply the harvesting mode chosen below during combat." },
+      { type: "switch", name: "waitForCombatEnd", label: "Wait until current fight ends", default: true,
+        hint: "ON: Wait until the current monster is defeated, swap to your chosen farming gear, harvest and replant, then restore combat gear before the next fight. Long fights delay harvesting and can reduce farming output. OFF: Let SEMI harvest as soon as crops are ready with your current equipment and no gear swaps during combat. This avoids the wait but may miss farming-equipment bonuses." },
       { type: "label", name: "status", label: status },
       { type: "label", name: "slot-description", label: "Combat-only equipment swaps",
-        hint: "Choose slots here for combat harvesting; SEMI's own switches still control farming outside combat." },
+        hint: "Used when Wait until current fight ends is on. SEMI's own switches still control farming outside combat." },
     ]);
     for (const slotID of new Set([...Object.keys(GEAR_PRIORITY.melvor), ...Object.keys(GEAR_PRIORITY.abyssal)])) {
       const slot = game.equipmentSlots.getObjectByID(slotID);
@@ -24,7 +26,7 @@ export async function setup(ctx) {
     const report = result => {
       const last = result.last;
       status.textContent = [result.state, `Combat harvests this session: ${result.harvests}`,
-        ...(last ? [`Last batch: ${last.harvests} plots`, `Farming gear used: ${last.used.map(name => last.alreadyEquipped.includes(name) ? `${name} (already equipped)` : name).join(", ") || "None"}`,
+        ...(last ? [`Last batch: ${last.harvests} plots (${last.waitForCombatEnd ? "respawn gap" : "immediate, no gear swaps"})`, `Farming gear used: ${last.used.map(name => last.alreadyEquipped.includes(name) ? `${name} (already equipped)` : name).join(", ") || "None"}`,
           `Equipment, spells and prayers restored: ${last.gearRestored ? "Yes" : "NO"}`,
           `Combat timers unchanged: ${last.timersUnchanged ? "Yes" : "NO"}`,
           ...last.skipped] : [])].join("\n");
