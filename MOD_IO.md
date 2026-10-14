@@ -23,6 +23,9 @@ The **Wait until current fight ends** switch lets you choose between farming-equ
 - **OFF:** SEMI harvests ready crops on its normal schedule during the current fight, using your current equipment with no automatic gear swaps during combat.
   This avoids the wait, but you may miss bonuses from farming equipment that is not currently worn.
 
+The equipment slot switches are disabled and greyed out while waiting or the addon is off.
+Your selections are kept for when you turn it back on.
+
 This waits for the current fight, while combat continues through its normal respawn timer.
 Crops continue growing normally in both modes, and the setting also applies during offline progress.
 
@@ -57,9 +60,9 @@ The original SEMI mods remain unchanged.
 
 ## Release fields
 
-- **Version:** 0.1.2
+- **Version:** 0.1.3
 - **Game version:** 1.3.1
-- **Release file:** `krokys-armed-to-the-seeds-0.1.2.zip`
+- **Release file:** `krokys-armed-to-the-seeds-0.1.3.zip`
 - **Cover:** `assets/cover.png`
 - **Configuration icon:** `assets/icon.png`, a transparent 200 × 200 PNG included in the release manifest and archive.
 - **Required dependency:** SEMI Auto Farming, mod ID `2362049`.

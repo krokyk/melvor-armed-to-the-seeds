@@ -2,27 +2,47 @@ export async function setup(ctx) {
   const { CombatFarming, GEAR_PRIORITY } = await ctx.loadModule("combat-farming.mjs");
   ctx.onCharacterSelectionLoaded(() => {
     const settings = ctx.settings.section("Combat Farming");
+    const slotLabels = [];
+    const slotDescription = document.createElement("span");
+    slotDescription.textContent = "Combat-only equipment swaps";
+    const refreshSlots = (waiting = settings.get("waitForCombatEnd"), enabled = settings.get("enabled")) => {
+      const active = waiting && enabled;
+      slotDescription.parentElement.style.opacity = active ? "" : "0.5";
+      for (const text of slotLabels) {
+        const label = text.closest("label");
+        const input = label.control ?? label.parentElement.querySelector("input");
+        input.disabled = !active;
+        label.parentElement.style.opacity = active ? "" : "0.5";
+      }
+    };
     const status = document.createElement("div");
     status.setAttribute("role", "status");
     status.setAttribute("aria-live", "polite");
     status.style.whiteSpace = "pre-line";
     settings.add([
       { type: "switch", name: "enabled", label: "Enable Armed to the Seeds", default: true,
-        hint: "Apply the harvesting mode chosen below during combat." },
-      { type: "switch", name: "waitForCombatEnd", label: "Wait until current fight ends", default: true,
-        hint: "ON: Wait until the current monster is defeated, swap to your chosen farming gear, harvest and replant, then restore combat gear before the next fight. Long fights delay harvesting and can reduce farming output. OFF: Let SEMI harvest as soon as crops are ready with your current equipment and no gear swaps during combat. This avoids the wait but may miss farming-equipment bonuses." },
+        hint: "Apply the harvesting mode chosen below during combat.",
+        onChange: value => { refreshSlots(settings.get("waitForCombatEnd"), value); } },
       { type: "label", name: "status", label: status },
-      { type: "label", name: "slot-description", label: "Combat-only equipment swaps",
-        hint: "Used when Wait until current fight ends is on. SEMI's own switches still control farming outside combat." },
+      { type: "switch", name: "waitForCombatEnd", label: "Wait until current fight ends", default: true,
+        hint: "ON: Wait until the current monster is defeated, swap to your chosen farming gear, harvest and replant, then restore combat gear before the next fight. Long fights delay harvesting and can reduce farming output. OFF: Let SEMI harvest as soon as crops are ready with your current equipment and no gear swaps during combat. This avoids the wait but may miss farming-equipment bonuses. Slot switches below are disabled while waiting is off; their selections are kept.",
+        onChange: value => { refreshSlots(value); } },
+      { type: "label", name: "slot-description", label: slotDescription,
+        hint: "Used when the addon and Wait until current fight ends are on. SEMI's own switches still control farming outside combat." },
     ]);
     for (const slotID of new Set([...Object.keys(GEAR_PRIORITY.melvor), ...Object.keys(GEAR_PRIORITY.abyssal)])) {
       const slot = game.equipmentSlots.getObjectByID(slotID);
       if (!slot) continue;
       const items = [...new Set([...(GEAR_PRIORITY.melvor[slotID] ?? []), ...(GEAR_PRIORITY.abyssal[slotID] ?? [])])]
         .map(id => game.items.getObjectByID(id)).filter(Boolean);
-      settings.add({ type: "switch", name: `swap-${slotID}`, label: `Swap ${slot.emptyName}`, default: false,
+      const label = document.createElement("span");
+      label.textContent = `Swap ${slot.emptyName}`;
+      settings.add({ type: "switch", name: `swap-${slotID}`, label, default: false,
         hint: items.map(item => item.name).join(", ") });
+      slotLabels.push(label);
     }
+    refreshSlots();
+    ctx.onCharacterLoaded(() => refreshSlots());
     const report = result => {
       const last = result.last;
       status.textContent = [result.state, `Combat harvests this session: ${result.harvests}`,

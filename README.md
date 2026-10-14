@@ -1,6 +1,6 @@
 # Kroky's Armed to the Seeds
 
-Version **0.1.2**, an experimental companion for SEMI Auto Farming 1.1.2 and SEMI Core 2.0.6 on Melvor Idle 1.3.1.
+Version **0.1.3**, an experimental companion for SEMI Auto Farming 1.1.2 and SEMI Core 2.0.6 on Melvor Idle 1.3.1.
 SEMI Auto Farming and SEMI Core remain unchanged.
 The namespace, Combat Farming settings section, and switch keys retain their original names so existing linked settings survive the rename.
 
@@ -23,7 +23,7 @@ Load the mods in this order:
 2. SEMI Auto Farming.
 3. Kroky's Armed to the Seeds.
 
-Import `krokys-armed-to-the-seeds-0.1.2.zip` through **Creator Toolkit → Local Mods** to test locally.
+Import `krokys-armed-to-the-seeds-0.1.3.zip` through **Creator Toolkit → Local Mods** to test locally.
 Enable the local mod and reload the game.
 Local Toolkit mods have no mod.io dependency metadata, so the companion checks for the loaded SEMI mods and attaches when their original farming ticker is scheduled.
 Unlinked Toolkit mods do not save their settings between reloads; link a private or public mod.io listing in Toolkit, then enable the desired Swap switches again before testing offline equipment swaps.
@@ -33,6 +33,7 @@ Open **Mod Settings → Kroky's Armed to the Seeds**.
 **Enable Armed to the Seeds** and **Wait until current fight ends** are enabled by default.
 With waiting on, enable the individual **Swap** switches for the slots you want to use during respawn-gap harvesting.
 With waiting off, SEMI uses its normal crop-processing schedule during combat and keeps your current equipment; the companion's slot switches are ignored.
+The slot switches are disabled and greyed out while waiting or the addon is off, and their selections are kept for when you turn it back on.
 The wait is for the current fight to finish, and combat then continues through its normal respawn timer.
 These combat-only switches start off, so importing the companion alone does not start changing your equipment.
 SEMI's own slot switches remain responsible for equipment swapping outside combat.
