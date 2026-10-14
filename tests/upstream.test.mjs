@@ -324,6 +324,55 @@ test('combat slot toggles retain a disabled weapon slot', async () => {
   assertRestored(run);
 });
 
+test('an already worn superior farming cape is reported when cape swapping is disabled', async () => {
+  const run = await fixture();
+  const cape = { id: 'melvorTotH:Superior_Farming_Skillcape', name: 'Superior Farming Skillcape', equipRequirements: [] };
+  run.game.items.allObjects.push(cape);
+  run.player.equipment.equippedItems['melvorD:Cape'].item = cape;
+  run.originals['melvorD:Cape'] = cape;
+  run.settings.set('swap-melvorD:Cape', false);
+  run.tick(100);
+  run.gap();
+  assert.equal(run.events.find((entry) => entry.type === 'harvest').gear['melvorD:Cape'], cape.id);
+  assert.ok(run.companion.status.last.used.includes(cape.name));
+  assert.deepEqual(run.companion.status.last.alreadyEquipped, [cape.name]);
+  assert.equal(run.companion.status.last.swapped.includes(cape.name), false);
+  assert.equal(run.events.some((entry) => entry.type === 'equip' && entry.item === cape.id), false);
+  assertRestored(run);
+});
+
+test('farming gear used across repeated plots is reported once while retaining the swap list', async () => {
+  const run = await fixture();
+  run.plots.push({ ...run.plots[0], id: 'plot:second' });
+  run.tick(100);
+  run.gap();
+  assert.equal(run.companion.status.last.harvests, 2);
+  assert.equal(run.companion.status.last.used.filter((name) => name === 'melvorD:Bobs_Rake').length, 1);
+  assert.equal(run.companion.status.last.used.filter((name) => name === 'melvorF:Bobs_Gloves').length, 1);
+  assert.deepEqual([...run.companion.status.last.used].sort(), [...run.companion.status.last.swapped].sort());
+  assert.deepEqual(run.companion.status.last.alreadyEquipped, []);
+  assertRestored(run);
+});
+
+test('a disabled ring swap reports the worn farming ring rather than a better bank item', async () => {
+  const run = await fixture();
+  const worn = run.game.items.getObjectByID('melvorD:Ancient_Ring_Of_Skills');
+  const banked = { id: 'melvorD:Aorpheats_Signet_Ring', name: "Aorpheat's Signet Ring", equipRequirements: [] };
+  run.game.items.allObjects.push(banked);
+  run.game.bank.addItem(banked, 1);
+  run.player.equipment.equippedItems['melvorD:Ring'].item = worn;
+  run.originals['melvorD:Ring'] = worn;
+  run.settings.set('swap-melvorD:Ring', false);
+  run.tick(100);
+  run.gap();
+  assert.equal(run.events.find((entry) => entry.type === 'harvest').gear['melvorD:Ring'], worn.id);
+  assert.ok(run.companion.status.last.used.includes(worn.name));
+  assert.equal(run.companion.status.last.used.includes(banked.name), false);
+  assert.deepEqual(run.companion.status.last.alreadyEquipped, [worn.name]);
+  assert.equal(run.companion.status.last.swapped.includes(worn.name), false);
+  assertRestored(run);
+});
+
 test('a dungeon equipment lock still permits original farming without swapping gear', async () => {
   const run = await fixture();
   run.manager.areaType = CombatAreaType.Dungeon;

@@ -1,6 +1,6 @@
 # Kroky's Combat Farming
 
-Version **0.1.0**, an experimental companion for SEMI Auto Farming 1.1.2 and SEMI Core 2.0.6 on Melvor Idle 1.3.1.
+Version **0.1.1**, an experimental companion for SEMI Auto Farming 1.1.2 and SEMI Core 2.0.6 on Melvor Idle 1.3.1.
 SEMI Auto Farming and SEMI Core remain unchanged.
 
 When crops are ready during combat, the companion waits until the current monster dies and fight cleanup finishes.
@@ -19,7 +19,7 @@ Load the mods in this order:
 2. SEMI Auto Farming.
 3. Kroky's Combat Farming.
 
-Import `krokys-combat-farming-0.1.0.zip` through **Creator Toolkit → Local Mods** to test locally.
+Import `krokys-combat-farming-0.1.1.zip` through **Creator Toolkit → Local Mods** to test locally.
 Enable the local mod and reload the game.
 Local Toolkit mods have no mod.io dependency metadata, so the companion checks for the loaded SEMI mods and attaches when their original farming ticker is scheduled.
 The mod.io listing must declare SEMI Auto Farming as a dependency when published.
@@ -43,7 +43,10 @@ Disabling the companion in Creator Toolkit and reloading removes its runtime hoo
 ## How to verify it
 
 The status readout in the companion's settings shows combat harvest totals and the last batch's gear, restoration result, and combat timer checks.
+It lists farming items actually equipped at harvest, marking items that were already equipped even if their Swap switch is off.
 It only counts calls made through SEMI's original harvest logic during a spawning gap.
+Offline catchup runs the same farming and combat hooks, so the companion also applies while the game simulates time away.
+The offline recap window does not pause normal gameplay; crops can also be harvested while that window remains open.
 
 1. Export a backup of your save before a first live test.
 2. Keep SEMI enabled for a crop category and choose its normal seed priority.
@@ -55,7 +58,7 @@ It only counts calls made through SEMI's original harvest logic during a spawnin
 
 No crop-growth cheats, granted items, or test save mutations are built into the mod.
 The test harness is separate from the release archive.
-Its mocked game edges cannot prove compatibility with every installed mod, so the first natural live harvest remains an important check.
+Its mocked game edges cannot prove compatibility with every installed mod, so the live status checks remain important.
 
 ## Development checks
 

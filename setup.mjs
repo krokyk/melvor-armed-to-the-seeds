@@ -24,7 +24,7 @@ export async function setup(ctx) {
     const report = result => {
       const last = result.last;
       status.textContent = [result.state, `Combat harvests this session: ${result.harvests}`,
-        ...(last ? [`Last batch: ${last.harvests} plots`, `Farming gear used: ${last.swapped.join(", ") || "None"}`,
+        ...(last ? [`Last batch: ${last.harvests} plots`, `Farming gear used: ${last.used.map(name => last.alreadyEquipped.includes(name) ? `${name} (already equipped)` : name).join(", ") || "None"}`,
           `Equipment, spells and prayers restored: ${last.gearRestored ? "Yes" : "NO"}`,
           `Combat timers unchanged: ${last.timersUnchanged ? "Yes" : "NO"}`,
           ...last.skipped] : [])].join("\n");

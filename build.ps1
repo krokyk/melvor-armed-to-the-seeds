@@ -16,7 +16,7 @@ Push-Location -LiteralPath $PSScriptRoot
 try {
     node --test
     if ($LASTEXITCODE -ne 0) { throw 'Tests failed; release archive was not built.' }
-    $releasePath = Join-Path $PSScriptRoot 'krokys-combat-farming-0.1.0.zip'
+    $releasePath = Join-Path $PSScriptRoot 'krokys-combat-farming-0.1.1.zip'
     $releaseFiles = @('manifest.json', 'setup.mjs', 'combat-farming.mjs')
     Compress-Archive -LiteralPath ($releaseFiles | ForEach-Object { Join-Path $PSScriptRoot $_ }) -DestinationPath $releasePath -Force
     Add-Type -AssemblyName System.IO.Compression.FileSystem

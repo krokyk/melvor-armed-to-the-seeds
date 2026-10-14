@@ -1,9 +1,9 @@
 # Mod.io release notes
 
 Name: **Kroky's Combat Farming**.
-Version: **0.1.0**.
+Version: **0.1.1**.
 Game version: **1.3.1**.
-Release file: `krokys-combat-farming-0.1.0.zip`.
+Release file: `krokys-combat-farming-0.1.1.zip`.
 
 Declare **SEMI Auto Farming** (mod ID `2362049`) as a required dependency in the mod.io listing.
 SEMI Auto Farming already depends on **SEMI Core** (mod ID `2253323`).

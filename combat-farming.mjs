@@ -53,7 +53,9 @@ export class CombatFarming {
     ctx.patch(types.Farming, "harvestPlotOnClick").replace(function (original, plot, ...args) {
       if (!controller.running || this !== game.farming) return original(plot, ...args);
       if (!controller.inSpawnGap()) throw new Error("The spawning gap ended before harvesting.");
-      controller.swap(plot.plantedRecipe.namespace === "melvorItA" ? "abyssal" : "melvor");
+      const realm = plot.plantedRecipe.namespace === "melvorItA" ? "abyssal" : "melvor";
+      controller.swap(realm);
+      controller.recordGear(realm);
       const result = original(plot, ...args);
       controller.batch.harvests++;
       return result;
@@ -133,6 +135,15 @@ export class CombatFarming {
     }
   }
 
+  recordGear(realm) {
+    for (const itemID of new Set(Object.values(GEAR_PRIORITY[realm]).flat())) {
+      const item = this.game.items.getObjectByID(itemID);
+      if (!item || this.game.combat.player.equipment.getSlotOfItem(item) === undefined) continue;
+      this.batch.used.add(item.name);
+      if (this.batch.equippedBefore.has(item)) this.batch.alreadyEquipped.add(item.name);
+    }
+  }
+
   run(limit) {
     if (this.running) return;
     const combat = this.game.combat;
@@ -145,7 +156,8 @@ export class CombatFarming {
     const originalMonster = combat.selectedMonster;
     const timers = [player.timers.act, player.timers.summon, combat.spawnTimer];
     const beforeTimers = timers.map(timerState);
-    this.batch = { harvests: 0, swapped: new Set(), skipped: new Set(), realm: null };
+    this.batch = { harvests: 0, used: new Set(), alreadyEquipped: new Set(), swapped: new Set(), skipped: new Set(),
+      equippedBefore: new Set(Object.values(before).map(slot => slot.item)), realm: null };
     this.running = true;
     let failure;
     try {
@@ -174,7 +186,8 @@ export class CombatFarming {
     if (this.batch.harvests > 0 || failure) {
       this.status.cycles++;
       this.status.harvests += this.batch.harvests;
-      this.status.last = { harvests: this.batch.harvests, swapped: [...this.batch.swapped], skipped: [...this.batch.skipped], gearRestored, timersUnchanged, combatUnchanged };
+      this.status.last = { harvests: this.batch.harvests, used: [...this.batch.used], alreadyEquipped: [...this.batch.alreadyEquipped],
+        swapped: [...this.batch.swapped], skipped: [...this.batch.skipped], gearRestored, timersUnchanged, combatUnchanged };
     }
     if (failure) {
       this.failed = true;
