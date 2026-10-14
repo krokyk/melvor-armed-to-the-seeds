@@ -14,6 +14,11 @@ foreach ($fixture in $fixtures) {
 }
 Push-Location -LiteralPath $PSScriptRoot
 try {
+    $iconBytes = [System.IO.File]::ReadAllBytes((Join-Path $PSScriptRoot 'assets/icon.png'))
+    if ($iconBytes.Length -lt 24 -or [System.BitConverter]::ToString($iconBytes, 0, 8) -ne '89-50-4E-47-0D-0A-1A-0A') { throw 'The configuration icon must be a PNG.' }
+    $iconWidth = [System.Net.IPAddress]::NetworkToHostOrder([System.BitConverter]::ToInt32($iconBytes, 16))
+    $iconHeight = [System.Net.IPAddress]::NetworkToHostOrder([System.BitConverter]::ToInt32($iconBytes, 20))
+    if ($iconWidth -lt 1 -or $iconWidth -gt 200 -or $iconHeight -lt 1 -or $iconHeight -gt 200) { throw 'The configuration icon must be at most 200 x 200 pixels.' }
     node --test
     if ($LASTEXITCODE -ne 0) { throw 'Tests failed; release archive was not built.' }
     $releasePath = Join-Path $PSScriptRoot 'krokys-armed-to-the-seeds-0.1.1.zip'

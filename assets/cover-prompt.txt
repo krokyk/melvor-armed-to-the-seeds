@@ -20,3 +20,23 @@ Text verbatim: "Kroky’s" / "Armed to the Seeds"; plus small "Zzz" over the dra
 Constraints: plate armor and farming outfit both immediately readable; dragon clearly peacefully sleeping; one farmer and one dragon only; carrot tapered lower half remains buried; no gore; no title overlap or cropped border.
 Avoid: photorealism, realistic textures, 3D rendering, cinematic scenery, castle, mountains, sky, trees, fences, watering cans, crates, extra props, extra characters, weapons in hands, watermark.
 
+Refinement: farming gloves and farming cape.
+Generation mode: built-in image_gen, precise-object-edit.
+Edit target: assets/cover.png, previous approved cover preserved at .cache/artwork-drafts/cover-before-farming-gear.png.
+Official Bob's Gloves reference: https://wiki.melvoridle.com/images/8/8d/Bob%27s_Gloves_%28item%29.png
+Official Superior Farming Skillcape reference: https://wiki.melvoridle.com/images/0/05/Superior_Farming_Skillcape_%28item%29.png
+Local visual references: .cache/artwork-references/bobs-gloves.png and .cache/artwork-references/superior-farming-skillcape.png.
+
+Exact refinement prompt:
+Use case: precise-object-edit.
+Asset type: final landscape fantasy game mod cover refinement.
+Input image 1 is the approved cover and the edit target.
+Input image 2 is the official Melvor Bob's Gloves item icon, a visual reference for the farmer's new gloves.
+Input image 3 is the official Melvor Superior Farming Skillcape item icon, a visual reference for the farmer's new cape.
+Change only the farmer's gloves and add his farming cape; preserve every other approved element of image 1.
+Replace the current dark gloves with recognizable Bob's Gloves-inspired full-finger farming work gloves: tan/beige fingers and cuffs, medium-brown palm and wrist panels, pale stitched cuff accents, while both hands keep exactly the same grip on the same carrot leaves.
+Add a Superior Farming Skillcape-inspired garment naturally attached at his shoulders, hanging behind his torso and down his visible side: forest green cloth with olive lighter panels, vivid gold trim and collar, and a visible circular brown soil medallion containing a green two-leaf sprout and orange root/soil emblem.
+The cape must read as a separate cloth cape worn over armor, not a replacement for the silver plate armor or the existing beige apron.
+Keep the cape compact and folded naturally within the existing farmer silhouette and the empty navy space next to his upper body so it does not cover his smiling face, silver armor chest, straw hat, hands, carrot, farming boots, or the sleeping dragon.
+Keep exact current farmer pose and expression, both hands pulling the carrot halfway out of soil, dragon and Zzz, dark navy background, thin gold curved-corner border, gold ornaments, typography, exact title "Kroky’s" / "Armed to the Seeds", layout, colors and clean flat-shaded sibling-cover illustration style.
+No other changes, no extra text, no additional props or characters, no photorealism.

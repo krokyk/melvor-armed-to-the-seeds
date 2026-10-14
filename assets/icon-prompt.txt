@@ -15,3 +15,24 @@ Composition/framing: Square canvas with a single centered compact figure and car
 Scene/backdrop: Actual transparent background.
 Constraints: No dragon, text, letters, title, watermark, logo, frame, scenery, castle, clouds, or background. No photorealism, rendered 3D, painterly texture, gradients imitating metal photography, or pixel art. Preserve genuine alpha transparency.
 
+Semantic edit: Bob's Gloves and Superior Farming Skillcape
+Mode: Built-in image_gen imagegen edit
+Transparent background: true
+Edit target: D:/dev/projects/melvor-armed-to-the-seeds/assets/icon.png (approved 200×200 icon before this edit)
+Reference 2: D:/dev/projects/melvor-armed-to-the-seeds/.cache/artwork-references/bobs-gloves.png
+Reference 2 source: https://wiki.melvoridle.com/images/8/8d/Bob%27s_Gloves_%28item%29.png
+Reference 3: D:/dev/projects/melvor-armed-to-the-seeds/.cache/artwork-references/superior-farming-skillcape.png
+Reference 3 source: https://wiki.melvoridle.com/images/0/05/Superior_Farming_Skillcape_%28item%29.png
+
+Exact edit prompt:
+Use case: precise-object-edit
+Asset type: square transparent mod configuration icon, intended for a final 200×200 export.
+Input images: Image 1 is the existing icon and the edit target; preserve its character, composition, clean flat-shaded cartoon style, straw hat, happy face, silver plate armor, brown farmer boots, oversized orange carrot, leafy top, tiny soil patch, and generous transparent margins. Image 2 is the actual Melvor Bob's Gloves item reference. Image 3 is the actual Melvor Superior Farming Skillcape item reference.
+Primary request: Change only the farmer knight's hand coverings and add his farming cape. Replace both silver armored gauntlets with full-finger tan/beige work gloves inspired by Image 2: medium-brown palm and wrist panels, beige cuffs, pale stitching simplified for icon scale. The gloves should look like practical farming gloves and continue gripping the carrot leaves in exactly the existing harvesting pose. Retain silver forearm armor above the gloves.
+Add a farming cape inspired by Image 3, attached at the shoulders and hanging behind the farmer along his visible outer side. Use forest-green cloth, lighter olive panels, bold vivid gold collar and edge trim, and one clear small circular brown soil emblem with a green two-leaf sprout and orange root where naturally visible. Make the green/gold farming cape clearly recognizable without covering the smiling face, straw hat, plate chest and legs, carrot, or hands.
+Style/medium: Exactly the existing icon's friendly medieval fantasy, crisp simple geometric cartoon forms, flat shading, restrained highlights, no photorealism, no 3D render, no pixel art.
+Constraints: Preserve the existing pose and compact silhouette as much as possible; show both tan gloves and a readable green/gold cape. Keep everything inside the square canvas with clear transparent margins. No dragon, text, frame, extra props, scenery, or background. Genuine alpha transparency is required.
+
+
+
+Final export: downsampled the native 1254 × 1254 edit to a 200 × 200 RGBA PNG using high-quality bicubic resampling, preserving aspect ratio and alpha transparency.

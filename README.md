@@ -83,5 +83,7 @@ No upstream source files are included in the release or committed to this reposi
 ## Artwork
 
 `assets/cover.png` is the mod.io listing cover, and `assets/icon.png` is the transparent configuration icon included in the release archive.
+The configuration icon is limited to 200 × 200 pixels, and the build rejects larger exports.
 The artwork follows the sibling mods' navy, gold, and simple cartoon style.
+The gloves and cape take visual inspiration from Melvor's [Bob's Gloves](https://wiki.melvoridle.com/w/Bob%27s_Gloves) and [Superior Farming Skillcape](https://wiki.melvoridle.com/w/Superior_Farming_Skillcape) icons.
 Exact built-in image-generation prompts and reference roles are recorded in `assets/cover-prompt.txt` and `assets/icon-prompt.txt`.
