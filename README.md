@@ -1,6 +1,6 @@
 # Kroky's Armed to the Seeds
 
-Version **0.1.4**, an experimental companion for SEMI Auto Farming 1.1.2 and SEMI Core 2.0.6 on Melvor Idle 1.3.1.
+Version **1.0.0**, an experimental companion for SEMI Auto Farming 1.1.2 and SEMI Core 2.0.6 on Melvor Idle 1.3.1.
 SEMI Auto Farming and SEMI Core remain unchanged.
 The namespace, Combat Farming settings section, and switch keys retain their original names so existing linked settings survive the rename.
 
@@ -23,7 +23,7 @@ Load the mods in this order:
 2. SEMI Auto Farming.
 3. Kroky's Armed to the Seeds.
 
-Import `krokys-armed-to-the-seeds-0.1.4.zip` through **Creator Toolkit → Local Mods** to test locally.
+Import `krokys-armed-to-the-seeds-1.0.0.zip` through **Creator Toolkit → Local Mods** to test locally.
 Enable the local mod and reload the game.
 Local Toolkit mods have no mod.io dependency metadata, so the companion checks for the loaded SEMI mods and attaches when their original farming ticker is scheduled.
 Unlinked Toolkit mods do not save their settings between reloads; link a private or public mod.io listing in Toolkit, then enable the desired Swap switches again before testing offline equipment swaps.

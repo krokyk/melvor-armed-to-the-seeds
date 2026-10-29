@@ -66,9 +66,9 @@ The original SEMI mods remain unchanged.
 
 ## Release fields
 
-- **Version:** 0.1.4
+- **Version:** 1.0.0
 - **Game version:** 1.3.1
-- **Release file:** `krokys-armed-to-the-seeds-0.1.4.zip`
+- **Release file:** `krokys-armed-to-the-seeds-1.0.0.zip`
 - **Cover:** `assets/cover.png`
 - **Configuration icon:** `assets/icon.png`, a transparent 200 × 200 PNG included in the release manifest and archive.
 - **Required dependency:** SEMI Auto Farming, mod ID `2362049`.
