@@ -60,6 +60,7 @@ It measures processing delays rather than lost crops or yield.
 The last combat batch still shows its timing mode, gear, restoration result, and combat timer checks.
 It lists farming items actually equipped at harvest, marking items that were already equipped even if their Swap switch is off.
 Offline catchup runs the same farming and combat hooks, and its simulated harvests and deferred time are included in the session totals.
+The status readout refreshes when opened and while visible, with offline totals displayed after catchup finishes.
 The offline recap window does not pause normal gameplay; crops can also be harvested while that window remains open.
 
 1. Export a backup of your save before a first live test.

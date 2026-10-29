@@ -4,6 +4,8 @@ import { setup } from '../setup.mjs';
 
 class Element {
   constructor(tag) { this.tagName = tag; this.children = []; this.style = {}; }
+  get textContent() { return this.text ?? ''; }
+  set textContent(value) { this.text = value; this.textWrites = (this.textWrites ?? 0) + 1; }
   append(...children) {
     for (const child of children) {
       if (child instanceof Element) child.parentElement = this;
@@ -18,11 +20,19 @@ class Element {
   }
 }
 
-async function fixture(saved = {}, detached = false) {
+async function fixture(saved = {}, detached = false, visible = true) {
+  let visibilityChanged;
+  const gameEvents = new Map();
+  globalThis.loadingOfflineProgress = false;
+  globalThis.IntersectionObserver = class {
+    constructor(callback) { visibilityChanged = callback; }
+    observe() { visibilityChanged([{ isIntersecting: visible }]); }
+  };
   globalThis.document = { createElement: tag => new Element(tag) };
   globalThis.game = {
     equipmentSlots: { getObjectByID: id => ({ id, emptyName: id.split(':')[1] }) },
     items: { getObjectByID: () => undefined },
+    on: (event, callback) => gameEvents.set(event, callback),
   };
   globalThis.mod = {
     api: { SEMI: { equipmentSnapshot() {}, equipmentSnapshotRestore() {} } },
@@ -77,6 +87,8 @@ async function fixture(saved = {}, detached = false) {
   for (const [name, value] of Object.entries(saved)) settings.set(name, value, true);
   return {
     entries, settings, report,
+    showStatus: value => visibilityChanged?.([{ isIntersecting: value }]),
+    finishOffline() { globalThis.loadingOfflineProgress = false; gameEvents.get('offlineLoopExited')?.(); },
     load: () => loaded.forEach(callback => callback()),
     save: () => Object.fromEntries([...entries].map(([name, entry]) => [name, entry.value ?? null])),
     checkSlots(disabled) {
@@ -151,4 +163,38 @@ test('automatic counter updates retain a failure message without repeating its n
   assert.equal(notifications.length, 1);
   assert.match(ui.entries.get('enabled').root.textContent, /Paused: Equipment restoration failed/);
   assert.match(ui.entries.get('enabled').root.textContent, /All automatic harvests this session: 2/);
+});
+
+test('hidden and offline reports preserve counters and warnings without writing status DOM', async () => {
+  const ui = await fixture({}, false, false);
+  const node = ui.entries.get('enabled').root;
+  const status = { state: 'Ready', respawnHarvests: 3, harvests: 12, deferredTicks: 20, last: null };
+  ui.report(status);
+  for (let second = 1; second <= 3600; second++) {
+    status.deferredTicks = second * 20;
+    ui.report(status);
+  }
+  assert.equal(node.textWrites ?? 0, 0);
+  ui.showStatus(true);
+  assert.equal(node.textWrites, 1);
+  assert.match(node.textContent, /Time farming was deferred this session: 3600\.0 seconds/);
+  status.deferredTicks += 20;
+  ui.report(status);
+  assert.equal(node.textWrites, 2, 'visible counters keep updating');
+  globalThis.loadingOfflineProgress = true;
+  const notifications = [];
+  globalThis.notifyPlayer = (...args) => notifications.push(args);
+  status.state = 'Paused: Equipment restoration failed';
+  ui.report(status);
+  ui.report(status);
+  assert.equal(node.textWrites, 2);
+  assert.equal(notifications.length, 1, 'failure warnings survive suppressed rendering');
+  ui.finishOffline();
+  assert.equal(node.textWrites, 3);
+  assert.match(node.textContent, /Paused: Equipment restoration failed/);
+  ui.showStatus(false);
+  ui.report({ ...status, harvests: 13 });
+  assert.equal(node.textWrites, 3);
+  ui.showStatus(true);
+  assert.match(node.textContent, /All automatic harvests this session: 13/);
 });

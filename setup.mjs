@@ -49,8 +49,10 @@ export async function setup(ctx) {
       settings.set("enabled", undefined);
       refreshSlots();
     });
-    let notifiedFailure;
-    const report = result => {
+    let notifiedFailure, latestStatus, statusVisible = false;
+    const renderStatus = () => {
+      if (!statusVisible || loadingOfflineProgress || !latestStatus) return;
+      const result = latestStatus;
       const last = result.last;
       status.textContent = [result.state,
         `Harvested during respawns this session: ${result.respawnHarvests}`,
@@ -60,11 +62,20 @@ export async function setup(ctx) {
           `Equipment, spells and prayers restored: ${last.gearRestored ? "Yes" : "NO"}`,
           `Combat timers unchanged: ${last.timersUnchanged ? "Yes" : "NO"}`,
           ...last.skipped] : [])].join("\n");
+    };
+    const report = result => {
+      latestStatus = result;
+      renderStatus();
       if (result.state.startsWith("Paused:") && result.state !== notifiedFailure) {
         notifiedFailure = result.state;
         notifyPlayer(game.farming, result.state, "danger");
       }
     };
+    new IntersectionObserver(([{ isIntersecting }]) => {
+      statusVisible = isIntersecting;
+      renderStatus();
+    }).observe(status);
+    game.on("offlineLoopExited", renderStatus);
     const semi = mod.api.SEMI;
     if (!semi?.equipmentSnapshot || !semi?.equipmentSnapshotRestore || !mod.manager.getLoadedModList().includes("SEMI Auto Farming")) {
       status.textContent = "Unavailable: SEMI Core and SEMI Auto Farming must be enabled and loaded first.";
