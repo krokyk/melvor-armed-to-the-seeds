@@ -6,63 +6,37 @@ Kroky's Armed to the Seeds
 
 ## Summary
 
-An addon for SEMI Auto Farming: harvest with farming gear during monster respawns, or harvest immediately during combat with your current equipment.
+SEMI Auto Farming companion: harvest in farming gear between fights, or immediately in your current gear.
 
 ## Description
 
-**The monster's down.
-Your carrots are up.**
+Farming-equipment swaps for [SEMI Auto Farming](https://mod.io/g/melvoridle/m/semi-auto-farming), during combat and offline progress.
 
-**Kroky's Armed to the Seeds** is an addon for [SEMI Auto Farming](https://mod.io/g/melvoridle/m/semi-auto-farming) that automates farming-equipment swaps during monster respawns, including offline progress.
+- **Wait until current fight ends — ON:** Equip selected farming gear, harvest and replant during the monster respawn gap, then restore combat equipment, spells and prayers.
+- **OFF (default):** Harvest on SEMI's normal schedule using current gear, without combat equipment swaps.
+- Choose which slots may swap and inspect harvest counts, farming gear, deferred time and restoration checks.
+- Keep SEMI's crop priorities, ignored plots, composting and potion settings.
+- Preserve normal crop growth, combat timers and equipment requirements.
 
-The **Wait until current fight ends** switch lets you choose between farming-equipment bonuses and prompt harvesting during long fights:
+Long fights delay harvesting and replanting while waiting is enabled.
+Immediate harvesting may miss bonuses from farming gear that is not worn.
 
-- **ON:** Ready crops wait until the current monster is defeated.
-  The addon then equips farming gear in your chosen slots, lets SEMI harvest and replant during the respawn gap, and restores your combat equipment before the next fight.
-  Long fights can substantially delay harvesting and replanting, potentially reducing farming output.
-- **OFF (default for new installations):** SEMI harvests ready crops on its normal schedule during the current fight, using your current equipment with no automatic gear swaps during combat.
-  This avoids the wait, but you may miss bonuses from farming equipment that is not currently worn.
+**Setup:** Load SEMI Core, SEMI Auto Farming, then Armed to the Seeds.
+Open **Mod Settings → Kroky's Armed to the Seeds**, choose whether to wait, and enable the desired **Swap** slots when waiting is on.
+Waiting and swap slots start off for new installations; existing choices are preserved.
 
-The equipment slot switches are disabled and greyed out while waiting is off.
-Your selections are kept for when you turn it back on.
-
-Combat continues through its normal respawn timer in either mode.
-Crops continue growing normally in both modes, and the setting also applies during offline progress.
-
-- **Dress for the harvest.**
-  Choose which equipment slots may swap into farming gear when waiting is enabled.
-- **Keep SEMI in charge.**
-  Your existing seed priorities, ignored plots, composting, and potion settings still control the farming.
-- **See what you wore.**
-  The status shows the harvest mode and farming gear used, including items that were already equipped, and checks equipment restoration and combat timers.
-- **See what happened.**
-  Separate session counters show plots harvested during respawns and all automatic SEMI harvests during and outside combat.
-  Each successful plot counts once, manual harvests are excluded, and switching waiting off preserves the totals.
-  **Time farming was deferred** shows simulated seconds when the addon held SEMI's processing until the current fight ended, including offline progress.
-  This counts waiting once rather than once per plot, can include deferred planting and dead-crop cleanup, and does not measure lost yield.
-- **Keep growing while away.**
-  The addon also runs during offline progress and while the offline recap is displayed.
-- **Follow the game's equipment rules.**
-  Dungeon and Stronghold switching unlocks and Slayer access requirements still apply.
-
-**Getting started**
-
-1. Enable **SEMI Core**, **SEMI Auto Farming**, and **Kroky's Armed to the Seeds**, in that order.
-2. Configure your crops as usual in SEMI Auto Farming.
-3. Open **Mod Settings → Kroky's Armed to the Seeds** and choose whether to **Wait until current fight ends**.
-4. If waiting is on, enable the **Swap** switches for the equipment slots you want to use.
-
-Waiting and the individual equipment swap switches start off for new installations.
-Updates preserve your effective waiting choice, including keeping waiting off if the old master switch was off.
-SEMI's own equipment switches continue to control farming outside combat.
-
-Requires **SEMI Auto Farming 1.1.2** and **SEMI Core 2.0.6**; tested with **Melvor Idle 1.3.1**.
-This is an experimental addon, so export a save backup before your first test.
-
-**Credits:** SEMI Auto Farming and SEMI Core provide the farming and equipment helpers.
-The original SEMI mods remain unchanged.
+**Requires:** SEMI Auto Farming and SEMI Core.
+Tested with SEMI Auto Farming **1.1.2** and SEMI Core **2.0.6**.
+This companion does not replace either mod.
+Tested with Melvor Idle **1.3.1**; experimental equipment-swap integration.
 
 [Source code](https://github.com/krokyk/melvor-armed-to-the-seeds)
+
+## Changelog
+
+- Choose immediate combat farming or farming-equipment swaps during monster respawns.
+- Apply the same behavior during offline progress.
+- Report automatic harvests, deferred farming time, equipment restoration and combat-timer checks.
 
 ## Release fields
 
