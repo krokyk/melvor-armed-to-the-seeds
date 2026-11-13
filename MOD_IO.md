@@ -6,31 +6,39 @@ Kroky's Armed to the Seeds
 
 ## Summary
 
-SEMI Auto Farming companion: harvest in farming gear between fights, or immediately in your current gear.
+Optional farming-gear swaps between fights, with normal crop automation and restoration of combat equipment, spells and prayers.
 
 ## Description
 
 Farming-equipment swaps for [SEMI Auto Farming](https://mod.io/g/melvoridle/m/semi-auto-farming), during combat and offline progress.
 
-- **Wait until current fight ends — ON:** Equip selected farming gear, harvest and replant during the monster respawn gap, then restore combat equipment, spells and prayers.
-- **OFF (default):** Harvest on SEMI's normal schedule using current gear, without combat equipment swaps.
-- Choose which slots may swap and inspect harvest counts, farming gear, deferred time and restoration checks.
-- Keep SEMI's crop priorities, ignored plots, composting and potion settings.
-- Preserve normal crop growth, combat timers and equipment requirements.
+- With **Wait until current fight ends** on, equip selected farming gear and harvest/replant during the monster respawn gap.
+- Restore combat equipment, spells and prayers afterward.
+- With waiting off **(default)**, farm on the normal schedule using current gear.
+- Choose the slots allowed to swap.
+  Crop priorities, ignored plots, composting and potion settings are kept.
 
-Long fights delay harvesting and replanting while waiting is enabled.
-Immediate harvesting may miss bonuses from farming gear that is not worn.
+Long fights delay farming when waiting is enabled.
+With waiting off, current gear determines farming bonuses.
+Normal crop growth, combat timers and equipment requirements apply.
 
-**Setup:** Load SEMI Core, SEMI Auto Farming, then Armed to the Seeds.
-Open **Mod Settings → Kroky's Armed to the Seeds**, choose whether to wait, and enable the desired **Swap** slots when waiting is on.
-Waiting and swap slots start off for new installations; existing choices are preserved.
+**Requires:** [SEMI Core](https://mod.io/g/melvoridle/m/semi-core) and [SEMI Auto Farming](https://mod.io/g/melvoridle/m/semi-auto-farming); load this companion after both.
+Tested with [SEMI Core 2.0.6](https://mod.io/g/melvoridle/m/semi-core), [SEMI Auto Farming 1.1.2](https://mod.io/g/melvoridle/m/semi-auto-farming) and Melvor Idle 1.3.1.
+It extends their farming automation.
 
-**Requires:** SEMI Auto Farming and SEMI Core.
-Tested with SEMI Auto Farming **1.1.2** and SEMI Core **2.0.6**.
-This companion does not replace either mod.
-Tested with Melvor Idle **1.3.1**; experimental equipment-swap integration.
+Open **Mod Settings → Kroky's Armed to the Seeds** and enable waiting and the desired **Swap** slots.
+Both start off for new installations.
+Equipment-swap integration is experimental.
 
 [Source code](https://github.com/krokyk/melvor-armed-to-the-seeds)
+
+### See my other mods:
+
+- [Kroky's Bardic Troupe](https://mod.io/g/melvoridle/m/krokys-bardic-troupe)
+- [Kroky's Workforce](https://mod.io/g/melvoridle/m/krokys-workforce)
+- [Kroky's Better UI](https://mod.io/g/melvoridle/m/krokys-better-ui)
+- [Kroky's Mapmaking](https://mod.io/g/melvoridle/m/krokys-mapmaking)
+- [Kroky's No Pain, All Gain](https://mod.io/g/melvoridle/m/krokys-no-pain-all-gain)
 
 ## Changelog
 
